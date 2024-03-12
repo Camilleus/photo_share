@@ -36,12 +36,15 @@ class UserResponse(BaseModel):
     detail: str = "User successfully created"
 
 
-class UserSearch(BaseModel):
+class UserSearch(UserModel):
     id: Optional[List[int]] = None
     username: Optional[List[str]] = None
     email: Optional[List[str]] = None
     keywords: Optional[List[str]] = None
 
+    class Config:
+        from_attributes = True
+        
 
 class UserUpdateName(BaseModel):
     username: str = Field(min_length=5, max_length=16)
@@ -110,13 +113,16 @@ class PictureResponse(PictureBase):
         orm_mode = True
 
 
-class PictureSearch(BaseModel):
+class PictureSearch(PictureBase):
     keywords: Optional[List[str]] = None
     tags: Optional[List[str]] = None
     id: Optional[List[int]] = None
     picture_name: Optional[List[str]] = None
     rating: Optional[List[int]] | None
     created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
 
 
 class RatingValue(IntEnum):

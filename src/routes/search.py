@@ -14,21 +14,21 @@ from src.services.search import PictureSearchService, UserSearchService, UserPic
 get_current_user = Auth.get_current_user
 
 
-router = APIRouter()
+router = APIRouter(tags=["search"])
 
 
 def search_pictures(search_params: PictureSearch, sort_by: Optional[str] = "created_at", sort_order: Optional[str] = "desc", db: Session = Depends(get_db)) -> List[PictureResponse]:
     picture_search_service = PictureSearchService(db)
     return picture_search_service.search_pictures(search_params, sort_by, sort_order)
 
-router.post("/pictures/search", tags=["pictures"], response_model=List[PictureResponse])(search_pictures)
+router.get("/search/pictures", response_model=List[PictureResponse])(search_pictures)
 
 
 def search_users(search_params: UserSearch, db: Session = Depends(get_db)) -> List[UserResponse]:
     user_search_service = UserSearchService(db)
     return user_search_service.search_users(search_params)
 
-router.post("/users/search", tags=["users"], response_model=List[UserResponse])(search_users)
+router.get("/search/users", response_model=List[UserResponse])(search_users)
 
 
 def search_users_by_picture(user_id: Optional[int] = None, picture_id: Optional[int] = None, rating: Optional[int] = None, added_after: Optional[datetime] = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> List[UserResponse]:
@@ -38,4 +38,4 @@ def search_users_by_picture(user_id: Optional[int] = None, picture_id: Optional[
     user_picture_search_service = UserPictureSearchService(db)
     return user_picture_search_service.search_users_by_picture(user_id, picture_id, rating, added_after)
 
-router.post("/users/search_by_picture", tags=["users"], response_model=List[UserResponse])(search_users_by_picture)
+router.get("/search/users/by_picture", response_model=List[UserResponse])(search_users_by_picture)

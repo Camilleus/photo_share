@@ -1,12 +1,275 @@
 import pytest
+import unittest
 from fastapi import HTTPException
+from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from datetime import datetime
 
+from src.database.db import get_db
+from src.database.models import Picture, Tag, User
+from src.routes.auth import get_current_user
+from src.tests.conftest import user_s, picture_s, TestingSessionLocal, Base, engine
 from src.routes.search import search_users, search_users_by_picture
 from src.schemas import PictureResponse, PictureSearch, UserResponse, UserSearch
 
+#Models for Search Testing
+# @pytest.fixture
+# def user_s():
+#     class UserTest:
+#         def __init__(self, id, username, email):
+#             self.id = id
+#             self.username = username
+#             self.email = email
 
+#         def dict(self):
+#             return {
+#                 "id": self.id,
+#                 "username": self.username,
+#                 "email": self.email
+#             }
+#     return UserTest(
+#                     id=1,
+#                     username="example",
+#                     email="example@example.com"
+#                     )
+    
+# @pytest.fixture
+# def picture_s():
+#     class PictureTest:
+#         def __init__(self, id, user_id, rating, tags, picture_name, picture_url, created_at):
+#             self.id = id
+#             self.user_id = user_id
+#             self.rating = rating
+#             self.tags = tags
+#             self.picture_name = picture_name
+#             self.picture_url = picture_url
+#             self.created_at = created_at
+
+
+#         def dict(self):
+#             return {
+#                 "id": self.id,
+#                 "user_id": self.user_id,
+#                 "rating": self.rating,
+#                 "tags": self.tags,
+#                 "picture_name": self.picture_name,
+#                 "created_at": self.created_at
+#             }
+#     return PictureTest(
+#                     id=1,
+#                     user_id=1,
+#                     rating=4,
+#                     tags=['picture_tag', 'picture_tag2'],
+#                     picture_name=f"picture{id}_name",
+#                     picture_url=f"picture{id}_url",
+#                     created_at=datetime.now()
+#                     )
+
+# def fake_db_for_search_test():
+#     '''
+#     This fixture is used to fake db for search testing
+#     '''
+#     db = {"pictures": {}, "users": {}, "next_picture_id": 1, "next_user_id": 1}
+#     def create_picture(user_id, rating, tags, picture_name, picture_url, created_at):
+        
+#             picture_id = db["next_picture_id"]
+#             db["pictures"][picture_id] = {
+#                 "id": picture_id,
+#                 "user_id": user_id,
+#                 "rating": rating,
+#                 "tags": tags,
+#                 "picture_name": picture_name,
+#                 "picture_url": picture_url,
+#                 "created_at": created_at
+#             }
+#             db["next_picture_id"] += 1
+#             picture = Picture(id=picture_id,user_id=user_id, rating=rating, tags=tags, picture_name=picture_name, picture_url=picture_url, created_at=created_at)
+#             db["pictures"][picture_id] = picture
+#             return picture
+
+#     db["create_picture"] = create_picture
+    
+#     def create_user(email, username):
+#         user_id = db["next_user_id"]
+#         db["users"][user_id] = {
+#             "id": user_id,
+#             "email": email,
+#             "username": username
+#         }
+#         db["next_user_id"] += 1
+#         return db["users"][user_id]
+    
+#     db["create_users"] = create_user
+#     return db
+
+
+# pictures = [
+#     (1, 3, ["picture1_tag", "picture1_tag2"], "picture1_name", datetime.now),
+#     (2, 4, ["picture1_tag2", "picture1_tag3"], "picture2_name", datetime.now),
+#     (3, 5, ["picture1_tag2", "picture1_tag3"], "picture3_name", datetime.now),
+#     (4, 2, ["picture1_tag3", "picture1_tag4"], "picture4_name", datetime.now),
+#     (5, 1, ["picture1_tag", "picture1_tag4"], "picture5_name", datetime.now),
+#     (6, 2, ["picture1_tag1", "picture1_tag2"], "picture6_name", datetime.now),
+#     (7, 3, ["picture1_tag1", "picture1_tag2"], "picture7_name", datetime.now),
+#     (8, 4, ["picture1_tag2", "picture1_tag3"], "picture8_name", datetime.now),
+#     (9, 5, ["picture1_tag3", "picture1_tag4"], "picture9_name", datetime.now),
+#     (10, 1, ["picture1_tag", "picture1_tag4"], "picture10_name", datetime.now)
+# ]
+
+
+# users = [
+#     (1,f"test_email1",f"test_username1"), 
+#     (2,f"test_email2",f"test_username2"), 
+#     (3,f"test_email3",f"test_username3"), 
+#     (4,f"test_email4",f"test_username4"), 
+#     (5,f"test_email5",f"test_username5")
+# ]       
+    
+# @pytest.fixture(scope="function", autouse=True)
+# def setup_test_database(picture_s, user_s):
+#     Base.metadata.drop_all(bind=engine)
+#     Base.metadata.create_all(bind=engine)
+
+#     db = TestingSessionLocal()
+#     try:
+#         for picture in pictures:
+#             p = picture_s(id=picture[0], user_id=picture[1], tags=picture[2], name=picture[3], created_at=picture[4])
+#             db.add(p)
+
+#         for user in users:
+#             u = user_s(id=user[0], email=user[1], username=user[2])
+#             db.add(u)
+
+#         db.commit()
+#         yield db
+#     finally:
+#         db.rollback()
+#         db.close()
+
+
+
+
+#Create test data
+def create_test_data():
+    db = TestingSessionLocal()
+
+    picture1 = Picture(
+        title="Test Picture 1",
+        description="This is a test picture.",
+        rating=5,
+        created_at=datetime.datetime.utcnow(),
+    )
+
+    picture2 = Picture(
+        title="Test Picture 2",
+        description="This is another test picture.",
+        rating=3,
+        created_at=datetime.datetime.utcnow(),
+    )
+
+    tag1 = Tag(name="test")
+    tag2 = Tag(name="picture")
+
+    picture1.tags = [tag1, tag2]
+    picture2.tags = [tag2]
+
+    db.add(picture1)
+    db.add(picture2)
+    db.add(tag1)
+    db.add(tag2)
+
+    db.commit()
+    db.refresh(picture1)
+    db.refresh(picture2)
+    db.refresh(tag1)
+    db.refresh(tag2)
+
+    db.close()
+
+create_test_data()
+
+
+
+
+
+#Test cases
+def test_create_test_data():
+    db = TestingSessionLocal()
+
+    # Test that two pictures are created
+    assert db.query(Picture).count() == 0
+    create_test_data()
+    assert db.query(Picture).count() == 2
+
+    # Test that the pictures have the correct attributes
+    picture1 = db.query(Picture).first()
+    assert picture1.title == "Test Picture 1"
+    assert picture1.description == "This is a test picture."
+    assert picture1.rating == 5
+
+    picture2 = db.query(Picture).second()
+    assert picture2.title == "Test Picture 2"
+    assert picture2.description == "This is another test picture."
+    assert picture2.rating == 3
+
+    # Test that two tags are created
+    assert db.query(Tag).count() == 0
+    create_test_data()
+    assert db.query(Tag).count() == 2
+
+    # Test that the tags have the correct attributes
+    tag1 = db.query(Tag).first()
+    assert tag1.name == "test"
+
+    tag2 = db.query(Tag).second()
+    assert tag2.name == "picture"
+
+    # Test that the pictures have the correct tags
+    picture1 = db.query(Picture).first()
+    assert len(picture1.tags) == 2
+    assert "test" in [tag.name for tag in picture1.tags]
+    assert "picture" in [tag.name for tag in picture1.tags]
+
+    picture2 = db.query(Picture).second()
+    assert len(picture2.tags) == 1
+    assert "picture" in [tag.name for tag in picture2.tags]
+
+    db.close()
+    
+    
+    
+
+
+class TestPictureSearch(unittest.TestCase):
+        
+    def test_get_method(picture_s):
+        # Test the .get method with a valid key
+        picture = picture_s
+        assert picture.get("id") == 1
+
+        # Test the .get method with an invalid key
+        assert picture.get("invalid_key") is None
+
+        # Test the .get method with a valid key and a default value
+        assert picture.get("id", "default_value") == 1
+        assert picture.get("invalid_key", "default_value") == "default_value"
+                
+    def test_search_pictures_with_picture_name_filter(client, picture_s):
+        # Set up the test data
+        picture_name = picture_s().picture_name
+
+        # Send the search request with the picture name filter
+        response = client.post(f"/api/pictures/search?name={picture_name}")
+
+        # Check the response status code
+        assert response.status_code == 200
+
+        # Check that the response contains the expected picture
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["id"] == picture_s().id
+        
+        
 class Test_Search_Picture:
 
     # The function returns a list of PictureResponse objects when given valid search parameters.
