@@ -10,7 +10,7 @@ from src.database.db import get_db
 from src.database.models import User
 from src.repository import users as repository_users
 from src.repository.users import get_user_by_id, list_all_users, update_user_name, ban_user, get_user_by_username
-from src.services.admin import require_admin
+
 from src.services.auth import auth_service
 from src.schemas import UserDb, UserUpdateName
 from src.conf.cloudinary import configure_cloudinary, generate_random_string
@@ -105,7 +105,6 @@ async def update_user_name_route(user_id: int,
 
 
 @router.post("/ban/{user_id}")
-@require_admin
 async def ban_user_route(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(auth_service.get_current_user)):
     """
     Ban a specific user identified by their user ID.
