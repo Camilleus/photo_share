@@ -42,6 +42,9 @@ class UserSearch(UserModel):
     username: Optional[List[str]] = None
     email: Optional[List[str]] = None
 
+    class Config:
+        from_attributes = True
+        
 
 class UserUpdateName(BaseModel):
     username: str = Field(min_length=5, max_length=16)
@@ -116,6 +119,9 @@ class PictureSearch(PictureBase):
     user_id: Optional[List[int]] = None
     picture_name: Optional[List[str]] = None
     tags: Optional[List[str]] = None
+
+    class Config:
+        from_attributes = True
 
 
 class RatingValue(IntEnum):

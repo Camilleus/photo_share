@@ -38,4 +38,4 @@ def search_users_by_picture(user_id: Optional[int] = None, picture_id: Optional[
     user_picture_search_service = UserPictureSearchService(db)
     return user_picture_search_service.search_users_by_picture(user_id, picture_id, rating, added_after)
 
-router.get("/search/users_by_picture", response_model=List[UserResponse])(search_users_by_picture)
+router.get("/users/search_by_picture", tags=["users"], response_model=List[UserResponse])(search_users_by_picture)
