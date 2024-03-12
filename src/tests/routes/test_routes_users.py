@@ -1,5 +1,4 @@
-from src.tests.conftest import login_user_confirmed_true_and_hash_password
-from src.tests.routes.test_routes_auth import login_user_token_created
+from src.tests.conftest import login_user_confirmed_true_and_hash_password, login_user_token_created
 
 
 def test_read_users_me(user, session, client):

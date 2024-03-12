@@ -14,7 +14,10 @@ client = TestClient(app)
 def create_x_pictures(session, no_of_pictures):
     pictures = []
     for i in range(no_of_pictures):
-        picture = Picture(picture_url=f"test_url{i}", description=f"test_description{i}", created_at=datetime.now(), qr_code_picture=f"test_qr_code{i}")
+        picture = Picture(picture_url=f"test_url{i}",
+                          description=f"test_description{i}",
+                          created_at=datetime.now(),
+                          qr_code_picture=f"test_qr_code{i}")
         session.add(picture)
         session.commit()
         pictures.append(picture)

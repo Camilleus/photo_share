@@ -1,32 +1,17 @@
-import unittest
-
-import pytest
-import unittest
-from fastapi import HTTPException
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-import json
-from datetime import datetime
-
-from src.routes.search import search_users, search_users_by_picture
-from src.database.models import Picture, User, Tag
-from src.schemas import PictureResponse, PictureSearch, UserResponse, UserSearch
-from src.tests.conftest import TestingSessionLocal
 from src.tests.conftest import login_user_token_created
 
 
-
-def test_search_pictures(picture_s, user_s, admin, session, client):
-    user_1 = login_user_token_created(user_s, session)
+def test_routes_rating(user, admin, picture_s, session, client):
+    user_1 = login_user_token_created(user, session)
     user_2 = login_user_token_created(admin, session)
 
     picture = picture_s
 
     response = client.post(
-        "/api/search/pictures",
+        "/api/rating/",
         headers={"Authorization": f"Bearer {user_1.get('access_token')}"},
         json={"picture_id": 1,
-              "rating": 3}
+              "rating": 7}
     )
 
     assert response.status_code == 422
@@ -34,7 +19,7 @@ def test_search_pictures(picture_s, user_s, admin, session, client):
     assert data["detail"] == [{'type': 'enum',
                                'loc': ['body', 'rating'],
                                'msg': 'Input should be 1, 2, 3, 4 or 5',
-                               'input': 3,
+                               'input': 7,
                                'ctx': {'expected': '1, 2, 3, 4 or 5'}}]
 
 
@@ -108,21 +93,3 @@ def test_search_pictures(picture_s, user_s, admin, session, client):
     assert response.status_code == 200
     assert response.json() == {"message": "No rating found for this user and picture."}
 
-
-
-
-
-def test_search_users(picture_s, user_s, admin, session, client):
-    user_1 = login_user_token_created(user_s, session)
-    user_2 = login_user_token_created(admin, session)
-    
-    user = user_s
-    
-    
-    
-    
-def test_search_users_by_picture(picture_s, user_s, admin, session, client):
-    user_1 = login_user_token_created(user_s, session)
-    user_2 = login_user_token_created(admin, session)
-    
-    user = user_s

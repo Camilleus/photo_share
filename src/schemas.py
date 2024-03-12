@@ -131,6 +131,13 @@ class RatingValue(IntEnum):
     FOUR = 4
     FIVE = 5
 
+class Rating(BaseModel):
+    picture_id: int
+    rating: RatingValue
+
+class RatingPicture(BaseModel):
+    picture_id: int
+
 class MessageBase(BaseModel):
     sender_id: int
     receiver_id: int
