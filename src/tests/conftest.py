@@ -8,7 +8,7 @@ from PIL import Image
 from io import BytesIO
 
 from main import app
-from src.database.models import Base, User, Picture
+from src.database.models import Base, User, Picture, Comment, Reaction
 from src.database.db import get_db
 from src.services.auth import auth_service
 from faker import Faker
@@ -133,6 +133,14 @@ def login_user_confirmed_true_and_hash_password(user, session):
     session.commit()
 
 
+def login_user_confirmed_false_and_hash_password(user, session):
+    create_user_db(user, session)
+    user_update: User = session.query(User).filter(User.email == user.email).first()
+    user_update.password = auth_service.get_password_hash(user_update.password)
+    user_update.confirmed = False
+    session.commit()
+
+
 def login_user_token_created(user, session):
     login_user_confirmed_true_and_hash_password(user, session)
     new_user: User = session.query(User).filter(User.email == user.email).first()
@@ -145,6 +153,18 @@ def login_user_token_created(user, session):
 
     return {"access_token": access_token, "refresh_token": refresh_token_, "token_type": "bearer"}
 
+
+def login_user_token_created_unconfirmed(user, session):
+    login_user_confirmed_false_and_hash_password(user, session)
+    new_user: User = session.query(User).filter(User.email == user.email).first()
+
+    access_token = auth_service.create_access_token(data={"sub": new_user.email})
+    refresh_token_ = auth_service.create_refresh_token(data={"sub": new_user.email})
+
+    new_user.refresh_token = refresh_token_
+    session.commit()
+
+    return {"access_token": access_token, "refresh_token": refresh_token_, "token_type": "bearer"}
 
 @pytest.fixture
 def fake_db_for_message_test():
@@ -296,3 +316,20 @@ def fake_db_for_search_test():
     
     db["create_users"] = create_user
     return db
+
+
+@pytest.fixture(scope="function", autouse=True)
+def create_comments(session):
+    comment_1 = Comment(user_id=1, picture_id=1, content="test content 1", created_at=datetime.fromisoformat("2024-03-12T21:42:38.921709"))
+    comment_2 = Comment(user_id=1, picture_id=1, content="test content 2", created_at=datetime.fromisoformat("2024-03-12T21:40:38.921709"))
+    comment_3 = Comment(user_id=1, picture_id=1, content="test content 3", created_at=datetime.fromisoformat("2024-03-12T21:49:38.921709"))
+    session.add_all([comment_1, comment_2, comment_3])
+    session.commit()
+
+
+@pytest.fixture(scope="function", autouse=True)
+def create_reactions(session):
+    reactions_1 = Reaction(comment_id=1, data={"like": [1]})
+    reactions_2 = Reaction(comment_id=2, data={"like": [2, 8, 4], "wow": [15, 6], "haha": [9, 5, 3, 10, 14]})
+    session.add_all([reactions_1, reactions_2])
+    session.commit()

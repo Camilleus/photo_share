@@ -1,15 +1,13 @@
-FROM python:3.11
+FROM python
 
-WORKDIR /app
+ENV PYTHONUNBUFFERED 1
 
-COPY pyproject.toml poetry.lock /app/
+EXPOSE 8000
 
-RUN pip install poetry && \
-    poetry config virtualenvs.create false && \
-    poetry install --no-dev
+WORKDIR /photo_share
 
-COPY . /app
+COPY . /photo_share
 
-ENV RUNNING_IN_DOCKER=true
+RUN pip install -r requirements.txt
 
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "main:app", "--bind", "0.0.0.0:8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]

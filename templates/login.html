@@ -1,35 +1,40 @@
-{% extends 'base.html' %}
+{% include 'layout.html' %}
 
-{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            Login
+        </div>
+        <div class="card-body">
+            <form method="POST" action="/login">
 
-    {% for error in errors %}
-        <p style="color: red">{{ error }}</p>
-    {% endfor %}
+                {% if msg %}
+                    {% if msg == 'Logout Successful' or msg == 'User successfully created' %}
+                        <div class="alert alert-success" role="alert">
+                            {{ msg }}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ msg }}
+                        </div>
+                    {% endif %}
+                {% endif %}
 
-    <style>
-    .form-layout {
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" class="form-control" name="email" required>
+                </div>
 
-    width: 500px;
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-control" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+        </div>
 
-    }
-    </style>
-
-
-    <div class="container form-layout">
-        <form action="/login" method="post">
-                <p><label for="email">Email</label></p>
-            <label>
-                <input type="email" required class="form-control" name="email" aria-describedby="emailhelp">
-            </label>
-            <p><label for="">Password</label></p>
-            <label>
-                <input type="password" required class="form-control" name="password">
-            </label>
-            <br>
-            <br>
-            <input class="btn btn-primary" type="submit" value="Submit">
-            <br>
-        </form>
+        <div class="card-footer text-muted">
+            <a href="/register">Register?</a>
+        </div>
     </div>
-
-{% endblock %}
+</div>

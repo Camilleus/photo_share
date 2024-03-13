@@ -1,10 +1,13 @@
-from typing import List, Type
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from src.database.db import get_db
 from src.schemas import PictureDescription
 from src.repository import descriptions as repository_descriptions
+from src.repository import pictures as repository_pictures
+from src.database.models import User
+from src.services.auth import auth_service
 
 
 router = APIRouter(prefix='/descriptions', tags=["descriptions"])
@@ -14,6 +17,7 @@ router = APIRouter(prefix='/descriptions', tags=["descriptions"])
 async def upload_description(
         picture_id: int,
         description: str,
+        current_user: User = Depends(auth_service.get_current_user),
         db: Session = Depends(get_db)
 ):
     """
@@ -30,6 +34,10 @@ async def upload_description(
     Returns:
     - The description of the uploaded picture as a PictureDescription instance.
     """
+
+    if not current_user.confirmed:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to upload description")
+
     descriptions = await repository_descriptions.upload_description(picture_id=picture_id, description=description, db=db)
     return descriptions
 
@@ -38,6 +46,7 @@ async def upload_description(
 async def get_all_descriptions(
         skip: int = 0,
         limit: int = 20,
+        current_user: User = Depends(auth_service.get_current_user),
         db: Session = Depends(get_db)
 ) -> list[str]:
     """
@@ -55,6 +64,9 @@ async def get_all_descriptions(
     - A list of PictureDescription instances representing the retrieved descriptions.
     """
 
+    if not current_user.confirmed:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to get all descriptions")
+
     descriptions = await repository_descriptions.get_all_descriptions(skip=skip, limit=limit, db=db)
     return descriptions
 
@@ -62,6 +74,7 @@ async def get_all_descriptions(
 @router.get("/{picture_id}", response_model=PictureDescription)
 async def get_one_description(
         picture_id: int,
+        current_user: User = Depends(auth_service.get_current_user),
         db: Session = Depends(get_db)
 ):
     """
@@ -78,6 +91,9 @@ async def get_one_description(
     - The description of the specified picture as a PictureDescription instance.
     """
 
+    if not current_user.confirmed:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to description")
+
     description = await repository_descriptions.get_one_description(picture_id=picture_id, db=db)
     if description is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Picture not found")
@@ -88,6 +104,7 @@ async def get_one_description(
 async def update_description(
         picture_id: int,
         new_description: str,
+        current_user: User = Depends(auth_service.get_current_user),
         db: Session = Depends(get_db)
 ):
     """
@@ -105,15 +122,23 @@ async def update_description(
     - The updated description of the specified picture as a PictureDescription instance.
     """
 
-    description = await repository_descriptions.update_description(picture_id=picture_id, new_description=new_description, db=db)
-    if description is None:
+    picture = await repository_pictures.get_one_picture(picture_id=picture_id, db=db)
+
+    if picture is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Picture not found")
+
+    if not current_user.id == picture.user_id and not current_user.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update this description")
+
+    description = await repository_descriptions.update_description(picture_id=picture_id, new_description=new_description, db=db)
+
     return description
 
 
 @router.delete("/{picture_id}", response_model=PictureDescription)
 async def delete_description(
         picture_id: int,
+        current_user: User = Depends(auth_service.get_current_user),
         db: Session = Depends(get_db)
 ):
     """
@@ -130,8 +155,14 @@ async def delete_description(
     - The deleted description of the specified picture as a PictureDescription instance.
     """
 
+    picture = await repository_pictures.get_one_picture(picture_id=picture_id, db=db)
+
+    if picture is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Picture not found")
+
+    if not current_user.id == picture.user_id and not current_user.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have permission to delete this description")
+
     description = await repository_descriptions.delete_description(picture_id=picture_id, db=db)
 
-    if description is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Picture not found")
     return description

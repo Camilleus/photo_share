@@ -49,7 +49,7 @@ async def remove_reaction(
     return await repository_reactions.remove_reaction_from_comment(comment_id, current_user, db)
 
 
-@router.get("/{comment_id}/")
+@router.get("/{comment_id}")
 async def get_reactions(
         comment_id: int,
         db: Session = Depends(get_db)
@@ -62,8 +62,8 @@ async def get_reactions(
     Returns:
         A list of users with their reactions for a comment
     """
-    comment = await repository_reactions.get_reactions(comment_id, db)
-    return comment
+    reactions = await repository_reactions.get_reactions(comment_id, db)
+    return reactions
 
 
 @router.get("/number/{comment_id}")
@@ -79,5 +79,5 @@ async def get_number_of_reactions(
     Returns:
         The numbers of reactions for a comment
     """
-    comment = await repository_reactions.get_number_of_reactions(comment_id, db)
-    return comment
+    reactions = await repository_reactions.get_number_of_reactions(comment_id, db)
+    return reactions

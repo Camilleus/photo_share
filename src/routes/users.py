@@ -1,16 +1,13 @@
 from typing import List
-
-from fastapi import APIRouter, Depends, UploadFile, File, status, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from fastapi_limiter.depends import RateLimiter
 from sqlalchemy.orm import Session
 import cloudinary
 import cloudinary.uploader
-
 from src.database.db import get_db
 from src.database.models import User
 from src.repository import users as repository_users
 from src.repository.users import get_user_by_id, list_all_users, update_user_name, ban_user, get_user_by_username
-
 from src.services.auth import auth_service
 from src.schemas import UserDb, UserUpdateName
 from src.conf.cloudinary import configure_cloudinary, generate_random_string

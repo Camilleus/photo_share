@@ -2,13 +2,11 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.responses import JSONResponse
-from fastapi_limiter.depends import RateLimiter
-
 from sqlalchemy.orm import Session
 from src.services.auth_roles import is_admin_or_moderator
 from src.database.db import get_db
-from src.database.models import Comment, User
-from src.schemas import CommentModel, CommentResponse, PictureDB, CommentUpdate
+from src.database.models import User
+from src.schemas import CommentModel, CommentResponse
 from src.repository import comments as repository_comments
 from src.services.auth import auth_service
 
@@ -58,11 +56,10 @@ async def read_comments(
 
 
 @router.post("/", response_model=CommentModel,
-             dependencies=[Depends(RateLimiter(times=1, seconds=5))],
              status_code=status.HTTP_201_CREATED)
 async def create_comment(
         body: CommentModel,
-        current_picture: PictureDB,
+        picture_id: int,
         db: Session = Depends(get_db),
         current_user: User = Depends(auth_service.get_current_user)
 ):
@@ -72,19 +69,19 @@ async def create_comment(
         a new comment. The function introduces a limitation of creating a new comment once every 5 seconds.
     Parameters:
         body (CommentModel): Get the body of the comment
-        current_picture (PictureDB): Takes the picture id for which the comment is created
+        picture_id (int): Take the picture id for which the comment is created
         db (Session): Access the database
         current_user (User): The User who created this comment.
     Returns:
         A new comment object.
     """
-    return await repository_comments.create_comment(body, current_picture, current_user, db)
+    return await repository_comments.create_comment(body, picture_id, current_user, db)
 
 
 @router.put("/{comment_id}", response_model=CommentResponse)
 async def update_comment(
         comment_id: int,
-        body: CommentUpdate,
+        body: CommentModel,
         db: Session = Depends(get_db),
         current_user: User = Depends(auth_service.get_current_user)
 ):
@@ -93,7 +90,7 @@ async def update_comment(
     "Comment not found".
     Parameters:
         comment_id (int): the id of the comment to be updated.
-        body (CommentUpdate): an object containing all fields that can be updated for a given comment.
+        body (CommentModel): an object containing all fields that can be updated for a given comment.
         db (Session): The SQLAlchemy session used to interact with the database.
         current_user (User): Get the current user
     Returns:

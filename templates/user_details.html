@@ -1,30 +1,33 @@
-{% extends 'base.html' %}
+{% include 'layout.html' %}
 
-{% block content %}
-    {% if  current_user.id == user.id or current_user.admin %}
-        <div class="container mt-5">
-            <h2>User Details</h2>
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">User Information</h5>
-                    <p class="card-text"><strong>ID:</strong> {{ user.id }}</p>
-                    <p class="card-text"><strong>Username:</strong> {{ user.username }}</p>
-                    <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
-                    <p class="card-text"><strong>Created At:</strong> {{ user.created_at }}</p>
+{% if current_user.id == user.id or current_user.admin %}
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">User Information</h5>
+                <p class="card-text"><strong>ID:</strong> {{ user.id }}</p>
+                <p class="card-text"><strong>Username:</strong> {{ user.username }}</p>
+                <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
+                <p class="card-text"><strong>Created At:</strong> {{ user.created_at }}</p>
 
-                    {% if user.avatar %}
-                    <p class="card-text"><strong>Avatar:</strong> <img src="{{ user.avatar }}" width="250" height="250" style="display: block; margin: auto;"></p>
-                    {% endif %}
-
-                </div>
+                {% if user.avatar %}
+                    <p class="card-text"><strong>Avatar:</strong> <img src="{{ user.avatar }}" width="250" height="250"
+                                                                       style="display: block; margin: auto;"></p>
+                {% endif %}
             </div>
-            <!-- Link to go back or navigate to other pages -->
-            {% if current_user.admin %}
-                <a href="/users" class="btn btn-primary mt-3">Back to Users</a>
-            {% else %}
-                <a href="/" class="btn btn-primary mt-3">Back to mainpage</a>
-            {% endif %}
+        </div>
+        <a href="/" class="btn btn-primary mt-3">Back</a>
 
-    {% endif %}
-
-{% endblock %}
+        <!-- Delete Account Button, visible to the user or admin -->
+        {% if current_user.id == user.id or current_user.admin %}
+            <form action="/users/delete/{{ user.id }}" method="post" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <!-- Include CSRF token for security -->
+                <button type="submit" class="btn btn-danger mt-3"
+                        onclick="return confirm('Are you sure you want to delete this account? This action cannot be undone.');">
+                    Delete Account
+                </button>
+            </form>
+        {% endif %}
+    </div>
+{% endif %}

@@ -6,10 +6,11 @@ from datetime import datetime
 from main import app
 from src.database.models import Picture
 from src.services.auth import auth_service
-from src.tests.conftest import login_user_token_created
+from src.tests.conftest import login_user_token_created, login_user_token_created_unconfirmed
 from src.routes import pictures
 
 client = TestClient(app)
+
 
 def create_x_pictures(session, no_of_pictures):
     pictures = []
@@ -48,13 +49,39 @@ def test_upload_picture(user, session, client, mock_picture):
         assert "created_at" in data
 
 
+def test_upload_picture_unauthorized(user, session, client, mock_picture):
+    new_user = login_user_token_created_unconfirmed(user, session)
+
+    mock_picture1 = {"picture": ("test_image.png", mock_picture, "image/png")}
+
+    with patch.object(auth_service, 'r') as r_mock:
+        r_mock.get.return_value = None
+        response = client.post(
+            "/api/pictures/upload",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            },
+            files=mock_picture1
+        )
+
+        assert response.status_code == 401, response.text
+
+
 def test_get_all_pictures(user, session, client):
+    new_user = login_user_token_created(user, session)
     no_of_pictures = 4
     pictures = create_x_pictures(session, no_of_pictures)
 
     with patch.object(auth_service, 'r') as r_mock:
         r_mock.get.return_value = None
-        response = client.get("/api/pictures/")
+        response = client.get(
+            "/api/pictures/",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            },
+        )
         data = response.json()
 
         assert response.status_code == 200, response.text
@@ -67,14 +94,39 @@ def test_get_all_pictures(user, session, client):
             assert "created_at" in data[i]
 
 
+def test_get_all_pictures_unauthorized(user, session, client):
+    new_user = login_user_token_created_unconfirmed(user, session)
+    no_of_pictures = 4
+    pictures = create_x_pictures(session, no_of_pictures)
+
+    with patch.object(auth_service, 'r') as r_mock:
+        r_mock.get.return_value = None
+        response = client.get(
+            "/api/pictures/",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            },
+        )
+
+        assert response.status_code == 401, response.text
+
+
 def test_get_one_picture_found(user, session, client):
+    new_user = login_user_token_created(user, session)
     no_of_pictures = 4
     no_to_get = no_of_pictures - 1
     pictures = create_x_pictures(session, no_of_pictures)
 
     with patch.object(auth_service, 'r') as r_mock:
         r_mock.get.return_value = None
-        response = client.get(f"/api/pictures/{no_to_get}")
+        response = client.get(
+            f"/api/pictures/{no_to_get}",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            },
+        )
         data = response.json()
 
         assert response.status_code == 200, response.text
@@ -84,20 +136,46 @@ def test_get_one_picture_found(user, session, client):
         assert "created_at" in data
 
 
+def test_get_one_picture_found_unauthorized(user, session, client):
+    new_user = login_user_token_created_unconfirmed(user, session)
+    no_of_pictures = 4
+    no_to_get = no_of_pictures - 1
+    pictures = create_x_pictures(session, no_of_pictures)
+
+    with patch.object(auth_service, 'r') as r_mock:
+        r_mock.get.return_value = None
+        response = client.get(
+            f"/api/pictures/{no_to_get}",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            },
+        )
+
+        assert response.status_code == 401, response.text
+
+
 def test_get_one_picture_not_found(user, session, client):
+    new_user = login_user_token_created(user, session)
     no_of_pictures = 4
     no_to_get = no_of_pictures + 100
     pictures = create_x_pictures(session, no_of_pictures)
 
     with patch.object(auth_service, 'r') as r_mock:
         r_mock.get.return_value = None
-        response = client.get(f"api/pictures/{no_to_get}")
+        response = client.get(
+            f"api/pictures/{no_to_get}",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            },
+        )
 
         assert response.status_code == 404, response.text
 
 
-def test_update_picture_found(user, session, client, mock_picture):
-    new_user = login_user_token_created(user, session)
+def test_update_picture_found(admin, session, client, mock_picture):
+    new_user = login_user_token_created(admin, session)
     mock_picture1 = {"picture": ("test_image.png", mock_picture, "image/png")}
     no_of_pictures = 4
     no_to_update = no_of_pictures - 1
@@ -121,8 +199,29 @@ def test_update_picture_found(user, session, client, mock_picture):
         assert "created_at" in data
 
 
-def test_update_picture_not_found(user, session, client, mock_picture):
+def test_update_picture_found_unauthorized(user, session, client, mock_picture):
     new_user = login_user_token_created(user, session)
+    mock_picture1 = {"picture": ("test_image.png", mock_picture, "image/png")}
+    no_of_pictures = 4
+    no_to_update = no_of_pictures - 1
+    pictures = create_x_pictures(session, no_of_pictures)
+
+    with patch.object(auth_service, 'r') as r_mock:
+        r_mock.get.return_value = None
+        response = client.put(
+            f"/api/pictures/{no_to_update}",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            },
+            files=mock_picture1
+        )
+
+        assert response.status_code == 403, response.text
+
+
+def test_update_picture_not_found(admin, session, client, mock_picture):
+    new_user = login_user_token_created(admin, session)
     mock_picture1 = {"picture": ("test_image.png", mock_picture, "image/png")}
     no_of_pictures = 4
     no_to_update = no_of_pictures + 100
@@ -142,8 +241,8 @@ def test_update_picture_not_found(user, session, client, mock_picture):
         assert response.status_code == 404, response.text
 
 
-def test_delete_picture_found(user, session, client):
-    new_user = login_user_token_created(user, session)
+def test_delete_picture_found(admin, session, client):
+    new_user = login_user_token_created(admin, session)
     no_of_pictures = 4
     no_to_delete = no_of_pictures - 1
     pictures = create_x_pictures(session, no_of_pictures)
@@ -165,8 +264,27 @@ def test_delete_picture_found(user, session, client):
         assert "created_at" in data
 
 
-def test_delete_picture_not_found(user, session, client):
+def test_delete_picture_found_unauthorized(user, session, client):
     new_user = login_user_token_created(user, session)
+    no_of_pictures = 4
+    no_to_delete = no_of_pictures - 1
+    pictures = create_x_pictures(session, no_of_pictures)
+
+    with patch.object(auth_service, 'r') as r_mock:
+        r_mock.get.return_value = None
+        response = client.delete(
+            f"/api/pictures/{no_to_delete}",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            }
+        )
+
+        assert response.status_code == 403, response.text
+
+
+def test_delete_picture_not_found(admin, session, client):
+    new_user = login_user_token_created(admin, session)
     no_of_pictures = 4
     no_to_delete = no_of_pictures + 100
     pictures = create_x_pictures(session, no_of_pictures)
@@ -184,7 +302,9 @@ def test_delete_picture_not_found(user, session, client):
         assert response.status_code == 404, response.text
 
 @pytest.mark.asyncio
-async def test_edit_picture(session):
+async def test_edit_picture(admin, session):
+    new_user = login_user_token_created(admin, session)
+
     picture_id = 1
     picture_edit = MagicMock()
     picture_edit.improve = "0"
@@ -199,10 +319,20 @@ async def test_edit_picture(session):
     picture_mock = MagicMock()
     picture_mock.picture_json = {"public_id": "public_id", "version": "version"}
 
-    with patch("src.routes.pictures.repository_pictures.get_one_picture", return_value=picture_mock) as mock_get_one_picture, \
-         patch("src.routes.pictures.cloudinary.uploader.upload") as mock_cloudinary_upload, \
-         patch("src.routes.pictures.generate_qr_and_upload_to_cloudinary") as mock_generate_qr_and_upload, \
-         patch("src.routes.pictures.cloudinary.CloudinaryImage") as mock_cloudinary_image:
+    with patch.object(auth_service, 'r') as r_mock, \
+        patch("src.routes.pictures.repository_pictures.get_one_picture", return_value=picture_mock) as mock_get_one_picture, \
+        patch("src.routes.pictures.cloudinary.uploader.upload") as mock_cloudinary_upload, \
+        patch("src.routes.pictures.generate_qr_and_upload_to_cloudinary") as mock_generate_qr_and_upload, \
+        patch("src.routes.pictures.cloudinary.CloudinaryImage") as mock_cloudinary_image:
+
+        r_mock.get.return_value = None
+        response = client.post(
+            "/api/pictures/edit/{picture_id}",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            },
+        )
 
         expected_edited_data = {
             "public_id": "edited_public_id",
@@ -220,9 +350,10 @@ async def test_edit_picture(session):
         mock_generate_qr_and_upload.side_effect = mock_qr_upload
         mock_cloudinary_image.return_value.build_url = mock_build_url
 
-        edited_picture = await pictures.edit_picture(picture_id, picture_edit, db=session)
+        edited_picture = await pictures.edit_picture(picture_id, picture_edit, admin, db=session)
 
     assert edited_picture == {
         "picture_edited_url": expected_edited_url,
         "qr_code_picture_edited": expected_qr_url
     }
+    assert response.status_code == 422, response.text

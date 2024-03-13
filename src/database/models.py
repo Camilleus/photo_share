@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import Column, Integer, String, func, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, declarative_base
@@ -122,7 +124,7 @@ class Comment(Base):
     picture_id = Column(Integer, ForeignKey('picture.id', ondelete='CASCADE'))
     content = Column(String(255), nullable=False)
     created_at = Column(DateTime)
-    updated_at = Column(DateTime)
+    updated_at = Column(DateTime, onupdate=datetime.datetime.now)
 
     reactions = relationship('Reaction', back_populates='comment')
     picture = relationship('Picture', back_populates='comments')
