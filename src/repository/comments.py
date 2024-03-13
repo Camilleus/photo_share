@@ -4,15 +4,15 @@ from typing import Type, Union
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from src.database.models import Comment, User
-from src.schemas import CommentModel, PictureDB, CommentUpdate
+from src.schemas import CommentModel
 
 
-async def create_comment(body: CommentModel, picture: PictureDB, user: User, db: Session) -> Comment:
+async def create_comment(body: CommentModel, picture_id: int, user: User, db: Session) -> Comment:
     """
     The create_comment function creates a new comment in the database.
     Parameters:
         body (CommentModel): The CommentModel object containing the data to be added to the database.
-        picture (PictureDB): The PictureDB object that is being commented on.
+        picture_id (int): The id of picture that is being commented on.
         user (User): The User who created this comment.
         db (Session): The SQLAlchemy session used to interact with the database.
 
@@ -20,7 +20,7 @@ async def create_comment(body: CommentModel, picture: PictureDB, user: User, db:
         A new comment object.
     """
     comment = Comment(user_id=user.id,
-                      picture_id=picture.id,
+                      picture_id=picture_id,
                       content=body.content,
                       created_at=datetime.now()
                       )
@@ -57,15 +57,15 @@ async def get_comments(picture_id: int, skip: int, limit: int, db: Session) -> l
     Returns:
         A list of comment objects
     """
-    return db.query(Comment).filter(Comment.picture_id == picture_id).offset(skip).limit(limit).all()
+    return db.query(Comment).filter(Comment.picture_id == picture_id).order_by(Comment.created_at.desc()).offset(skip).limit(limit).all()
 
 
-async def update_comment(comment_id: int, body: CommentUpdate, user: User, db: Session) -> Comment | None:
+async def update_comment(comment_id: int, body: CommentModel, user: User, db: Session) -> Comment | None:
     """
     The update_comment function updates a comment in the database.
     Parameters:
         comment_id (int): The id of the comment to update.
-        body (CommentUpdate): The updated content for the Comment object.
+        body (CommentModel): The updated content for the Comment object.
         user (User): Check if the user is the owner of the comment
         db (Session): The SQLAlchemy session used to interact with the database.
     Returns:
@@ -74,7 +74,6 @@ async def update_comment(comment_id: int, body: CommentUpdate, user: User, db: S
     comment = db.query(Comment).filter(and_(Comment.id == comment_id, Comment.user_id == user.id)).first()
     if comment:
         comment.content = body.content
-        comment.updated_at = datetime.now()
         db.commit()
     return comment
 

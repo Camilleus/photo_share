@@ -1,0 +1,18 @@
+{% include 'layout.html' %}
+
+<div class="container">
+    <div class="image-gallery">
+        <div class="row">
+            {% for picture in pictures %}
+                <div class="col-md-4">
+                    <a href="/picture/{{ picture.id }}">
+                        <img src="{{ picture.picture_url }}" alt="Image">
+                    </a>
+                </div>
+                {% if loop.index % 3 == 0 %}
+                    </div><div class="row">
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>

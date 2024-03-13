@@ -185,7 +185,6 @@ async def request_password_reset(body: RequestEmail,
         return JSONResponse(status_code=200, content={"message": "Password reset email sent."})
 
 
-
 @router.get("/reset_password/{token}", response_class=HTMLResponse)
 async def reset_password(request: Request, token: str, error: str = None):
     """

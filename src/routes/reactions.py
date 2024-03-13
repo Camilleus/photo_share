@@ -62,8 +62,8 @@ async def get_reactions(
     Returns:
         A list of users with their reactions for a comment
     """
-    comment = await repository_reactions.get_reactions(comment_id, db)
-    return comment
+    reactions = await repository_reactions.get_reactions(comment_id, db)
+    return reactions
 
 
 @router.get("/number/{comment_id}")
@@ -79,5 +79,5 @@ async def get_number_of_reactions(
     Returns:
         The numbers of reactions for a comment
     """
-    comment = await repository_reactions.get_number_of_reactions(comment_id, db)
-    return comment
+    reactions = await repository_reactions.get_number_of_reactions(comment_id, db)
+    return reactions

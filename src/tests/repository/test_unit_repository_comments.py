@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 from sqlalchemy.orm import Session
 
 from src.database.models import Comment, User
-from src.schemas import CommentModel, PictureDB, CommentResponse, CommentUpdate
+from src.schemas import CommentModel, PictureDB, CommentResponse
 from src.repository.comments import (
     get_comment,
     get_comments,
@@ -74,21 +74,14 @@ class TestUnitRepositoryComments(unittest.IsolatedAsyncioTestCase):
     async def test_create_comment(self):
         comment_model = CommentModel(
             content="Test comment")
-        picture_model = PictureDB(
-            id=5,
-            picture_url="Picture url",
-            rating=4,
-            description="Test description",
-            created_at="2002-03-15T00:00:00")
 
-        result = await create_comment(body=comment_model, picture=picture_model, user=self.user, db=self.session)
+        result = await create_comment(body=comment_model, picture_id=1, user=self.user, db=self.session)
         self.assertEqual(result.content, comment_model.content)
         self.assertTrue(hasattr(result, "id"))
 
     async def test_update_comment_found(self):
-        comment = CommentUpdate(
-            content="Test content",
-            updated_at="2002-03-15T00:00:00")
+        comment = CommentModel(
+            content="Test content")
         self.session.query().filter().first.return_value = comment
         self.session.commit.return_value = None
         result = await update_comment(comment_id=1, body=comment, user=self.user, db=self.session)

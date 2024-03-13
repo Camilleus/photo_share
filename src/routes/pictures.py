@@ -229,15 +229,14 @@ async def edit_picture(
     - HTTPException: If an error occurs during the editing process, such as validation failure or database access issues.
     """
 
-    if not current_user.admin:
+    if current_user.admin or picture_db.user_id == current_user.id:
         picture_db = await repository_pictures.get_one_picture(picture_id, db)
-        if picture_db.user_id != current_user.id:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to edit picture")
+    else:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to edit picture")
 
     configure_cloudinary()
 
     await repository_pictures.validate_edit_parameters(picture_edit)
-    picture_db = await repository_pictures.get_one_picture(picture_id, db)
     picture = picture_db.picture_json
     picture_public_id = picture['public_id']
     picture_version = picture['version']

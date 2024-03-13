@@ -1,49 +1,78 @@
-{% extends 'base.html' %}
+{% include 'layout.html' %}
 
-{% block content %}
+{% if user.admin %}
 
-    {% if user.admin %}
-        <div class="container">
-
-            <h4 class="text-center my-3">USERS PAGE</h4>
-            <div class="table-responsive">
-                <table class="table">
-
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Created At</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for users in all_users %}
-                            <tr>
-                                <td>{{ users.id }}</td>
-                                <td>{{ users.username }}</td>
-                                <td>{{ users.email }}</td>
-                                <td>{{ users.created_at }}</td>
-                                <td>
-
-                                    <a href="/users/{{ user.id }}" class="btn btn-primary">View</a>
-
-                                    <form action="/api/users/ban/{{ user.id }}" method="post" style="display: inline;">
-                                        <button type="submit" class="btn btn-warning">Ban User</button>
-                                    </form>
-
-                                    <form action="/api/users/delete/{{ user.id }}" method="post" style="display: inline;">
-                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                    </form>
-
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    <div class="container">
+        <div class="card-header">
+            Users Admin Panel
         </div>
-    {% endif %}
+        <div class="card-body">
+            <table class="table table-hover">
 
-{% endblock %}
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Created</th>
+                    <th scope="col">Confirmed</th>
+                    <th scope="col">Role</th>
+                    <th scope="col">Actions</th> <!-- Header for the actions column -->
+                </tr>
+                </thead>
+
+                <tbody>
+                {% for details in users_details %}
+                    <tr class="{{ 'pointer alert alert-danger' if details.ban_status else 'pointer' }}">
+                        <td>{{ loop.index }}</td>
+                        <td>{{ details.username }}</td>
+                        <td>{{ details.email }}</td>
+                        <td>{{ details.created_at }}</td>
+                        <td>{{ details.confirmed }}</td>
+                        <td>
+                            {% if details.admin %}
+                                Admin
+                            {% elif details.moderator %}
+                                Moderator
+                            {% else %}
+                                User
+                            {% endif %}
+                        </td>
+                        <td>
+
+                            <!-- View Button -->
+                            <a href="/users/{{ details.id }}" class="btn btn-primary btn-sm">View</a>
+
+                            <!-- Ban/Unban Button -->
+                            <form action="/users/toggle-ban/{{ details.id }}" method="post"
+                                  style="display: inline-block;">
+                                <input type="hidden" name="user_id" value="{{ details.id }}">
+                                {% if details.ban_status %}
+                                    <button type="submit" class="btn btn-warning btn-sm"
+                                            onclick="return confirm('Are you sure you want to unban this user?');">Unban
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-warning btn-sm"
+                                            onclick="return confirm('Are you sure you want to ban this user?');">Ban
+                                    </button>
+                                {% endif %}
+                            </form>
+
+                            <!-- Delete Button -->
+                            <form action="/users/delete/{{ details.id }}" method="post" style="display: inline-block;">
+                                <input type="hidden" name="user_id" value="{{ details.id }}">
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endif %}

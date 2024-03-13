@@ -1,0 +1,25 @@
+
+body {
+    background: #fafafa;
+    color: #33333a;
+    padding-top: 70px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #323232;
+}
+
+.main-color {
+    background-color: #0e76a8;
+}
+
+
+.image-gallery .row .col-md-4 img {
+    width: 100%; /* Make images take full width of the column */
+    height: auto; /* Maintain aspect ratio */
+    margin-bottom: 20px; /* Add some space below the images */
+}
+
+
+
+

@@ -25,7 +25,7 @@ async def add_reaction_to_comment(comment_id: int, reaction: str, user: User, db
     else:
         await update_reaction_to_comment(comment_id, reaction, user, db)
     db.commit()
-    return {"message": f"The reaction was added"}
+    return {"message": "The reaction was added"}
 
 
 async def update_reaction_to_comment(comment_id: int, reaction: str, user: User, db: Session):

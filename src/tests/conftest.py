@@ -8,7 +8,7 @@ from PIL import Image
 from io import BytesIO
 
 from main import app
-from src.database.models import Base, User, Picture
+from src.database.models import Base, User, Picture, Comment
 from src.database.db import get_db
 from src.services.auth import auth_service
 from faker import Faker
@@ -296,3 +296,12 @@ def fake_db_for_search_test():
     
     db["create_users"] = create_user
     return db
+
+
+@pytest.fixture(scope="function", autouse=True)
+def create_comments(session):
+    comment_1 = Comment(user_id=1, picture_id=1, content=f"test content 1", created_at=datetime.fromisoformat("2024-03-12T21:42:38.921709"))
+    comment_2 = Comment(user_id=1, picture_id=1, content=f"test content 2", created_at=datetime.fromisoformat("2024-03-12T21:40:38.921709"))
+    comment_3 = Comment(user_id=1, picture_id=1, content=f"test content 3", created_at=datetime.fromisoformat("2024-03-12T21:49:38.921709"))
+    session.add_all([comment_1, comment_2, comment_3])
+    session.commit()
