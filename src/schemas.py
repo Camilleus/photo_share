@@ -37,8 +37,7 @@ class UserResponse(BaseModel):
 
 
 class UserSearch(UserModel):
-    keywords: Optional[List[str]] = None
-    id: Optional[List[int]] = None
+    user_id: Optional[List[int]] = None
     username: Optional[List[str]] = None
     email: Optional[List[str]] = None
 

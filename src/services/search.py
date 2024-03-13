@@ -7,7 +7,7 @@ from datetime import datetime
 
 from src.database.models import Picture, Tag, User
 from src.database.db import get_db
-from src.schemas import PictureResponse, PictureSearch, UserResponse
+from src.schemas import PictureResponse, PictureSearch, UserResponse, UserSearch
 from src.services.auth import Auth
 
 
@@ -67,7 +67,7 @@ class UserSearchService:
     def __init__(self, db: Session):
         self.db = db
 
-    def search_users(self, search_params: PictureSearch, username: Optional[str] = None, email: Optional[str] = None) -> List[UserResponse]:
+    def search_users(self, search_params: UserSearch, username: Optional[str] = None, email: Optional[str] = None) -> List[UserResponse]:
         query = self.db.query(User)
 
         self._apply_keyword_filter(query, search_params)
