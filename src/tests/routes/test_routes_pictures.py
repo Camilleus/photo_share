@@ -6,10 +6,11 @@ from datetime import datetime
 from main import app
 from src.database.models import Picture
 from src.services.auth import auth_service
-from src.tests.conftest import login_user_token_created
+from src.tests.conftest import login_user_token_created, login_user_token_created_unconfirmed
 from src.routes import pictures
 
 client = TestClient(app)
+
 
 def create_x_pictures(session, no_of_pictures):
     pictures = []
@@ -24,8 +25,8 @@ def create_x_pictures(session, no_of_pictures):
     return pictures
 
 
-def test_upload_picture(admin, session, client, mock_picture):
-    new_user = login_user_token_created(admin, session)
+def test_upload_picture(user, session, client, mock_picture):
+    new_user = login_user_token_created(user, session)
 
     mock_picture1 = {"picture": ("test_image.png", mock_picture, "image/png")}
 
@@ -48,8 +49,27 @@ def test_upload_picture(admin, session, client, mock_picture):
         assert "created_at" in data
 
 
-def test_get_all_pictures(admin, session, client):
-    new_user = login_user_token_created(admin, session)
+def test_upload_picture_unauthorized(user, session, client, mock_picture):
+    new_user = login_user_token_created_unconfirmed(user, session)
+
+    mock_picture1 = {"picture": ("test_image.png", mock_picture, "image/png")}
+
+    with patch.object(auth_service, 'r') as r_mock:
+        r_mock.get.return_value = None
+        response = client.post(
+            "/api/pictures/upload",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            },
+            files=mock_picture1
+        )
+
+        assert response.status_code == 401, response.text
+
+
+def test_get_all_pictures(user, session, client):
+    new_user = login_user_token_created(user, session)
     no_of_pictures = 4
     pictures = create_x_pictures(session, no_of_pictures)
 
@@ -74,8 +94,26 @@ def test_get_all_pictures(admin, session, client):
             assert "created_at" in data[i]
 
 
-def test_get_one_picture_found(admin, session, client):
-    new_user = login_user_token_created(admin, session)
+def test_get_all_pictures_unauthorized(user, session, client):
+    new_user = login_user_token_created_unconfirmed(user, session)
+    no_of_pictures = 4
+    pictures = create_x_pictures(session, no_of_pictures)
+
+    with patch.object(auth_service, 'r') as r_mock:
+        r_mock.get.return_value = None
+        response = client.get(
+            "/api/pictures/",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            },
+        )
+
+        assert response.status_code == 401, response.text
+
+
+def test_get_one_picture_found(user, session, client):
+    new_user = login_user_token_created(user, session)
     no_of_pictures = 4
     no_to_get = no_of_pictures - 1
     pictures = create_x_pictures(session, no_of_pictures)
@@ -98,8 +136,27 @@ def test_get_one_picture_found(admin, session, client):
         assert "created_at" in data
 
 
-def test_get_one_picture_not_found(admin, session, client):
-    new_user = login_user_token_created(admin, session)
+def test_get_one_picture_found_unauthorized(user, session, client):
+    new_user = login_user_token_created_unconfirmed(user, session)
+    no_of_pictures = 4
+    no_to_get = no_of_pictures - 1
+    pictures = create_x_pictures(session, no_of_pictures)
+
+    with patch.object(auth_service, 'r') as r_mock:
+        r_mock.get.return_value = None
+        response = client.get(
+            f"/api/pictures/{no_to_get}",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            },
+        )
+
+        assert response.status_code == 401, response.text
+
+
+def test_get_one_picture_not_found(user, session, client):
+    new_user = login_user_token_created(user, session)
     no_of_pictures = 4
     no_to_get = no_of_pictures + 100
     pictures = create_x_pictures(session, no_of_pictures)
@@ -140,6 +197,27 @@ def test_update_picture_found(admin, session, client, mock_picture):
         assert "id" in data
         assert "picture_url" in data
         assert "created_at" in data
+
+
+def test_update_picture_found_unauthorized(user, session, client, mock_picture):
+    new_user = login_user_token_created(user, session)
+    mock_picture1 = {"picture": ("test_image.png", mock_picture, "image/png")}
+    no_of_pictures = 4
+    no_to_update = no_of_pictures - 1
+    pictures = create_x_pictures(session, no_of_pictures)
+
+    with patch.object(auth_service, 'r') as r_mock:
+        r_mock.get.return_value = None
+        response = client.put(
+            f"/api/pictures/{no_to_update}",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            },
+            files=mock_picture1
+        )
+
+        assert response.status_code == 403, response.text
 
 
 def test_update_picture_not_found(admin, session, client, mock_picture):
@@ -184,6 +262,25 @@ def test_delete_picture_found(admin, session, client):
         assert "id" in data
         assert "picture_url" in data
         assert "created_at" in data
+
+
+def test_delete_picture_found_unauthorized(user, session, client):
+    new_user = login_user_token_created(user, session)
+    no_of_pictures = 4
+    no_to_delete = no_of_pictures - 1
+    pictures = create_x_pictures(session, no_of_pictures)
+
+    with patch.object(auth_service, 'r') as r_mock:
+        r_mock.get.return_value = None
+        response = client.delete(
+            f"/api/pictures/{no_to_delete}",
+            headers={
+                'accept': 'application/json',
+                "Authorization": f"Bearer {new_user['access_token']}"
+            }
+        )
+
+        assert response.status_code == 403, response.text
 
 
 def test_delete_picture_not_found(admin, session, client):

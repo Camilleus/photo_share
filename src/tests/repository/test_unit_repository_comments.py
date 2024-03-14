@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 from sqlalchemy.orm import Session
 
 from src.database.models import Comment, User
-from src.schemas import CommentModel, PictureDB, CommentResponse
+from src.schemas import CommentModel, CommentResponse
 from src.repository.comments import (
     get_comment,
     get_comments,
@@ -103,10 +103,10 @@ class TestUnitRepositoryComments(unittest.IsolatedAsyncioTestCase):
     async def test_remove_comment_found(self):
         comment = Comment()
         self.session.query().filter().first.return_value = comment
-        result = await remove_comment(comment_id=1, db=self.session)
+        result = await remove_comment(comment_id=1, user=self.user, db=self.session)
         self.assertEqual(result, comment)
 
     async def test_remove_comment_not_found(self):
         self.session.query().filter().first.return_value = None
-        result = await remove_comment(comment_id=1, db=self.session)
+        result = await remove_comment(comment_id=1, user=self.user, db=self.session)
         self.assertIsNone(result)

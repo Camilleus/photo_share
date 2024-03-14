@@ -94,12 +94,14 @@ async def get_reactions(comment_id: int, db: Session):
     """
     reaction_record = db.query(Reaction).filter(Reaction.comment_id == comment_id).first()
     if not reaction_record:
-        return {"message": "No reaction for comment"}
+        return {}
     reaction_data = reaction_record.data
     reactions = {}
     for react, users in reaction_data.items():
         for user_id in users:
             user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                continue
             reactions[user.username] = react
     return reactions
 

@@ -1,4 +1,3 @@
-import logging
 from typing import List, Type
 from fastapi import APIRouter, Depends, HTTPException,  UploadFile, File, status
 from sqlalchemy.orm import Session
@@ -39,7 +38,7 @@ async def upload_picture(
     - The URL of the uploaded picture as a PictureDB instance.
     """
 
-    if not current_user:
+    if not current_user.confirmed:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to upload picture")
 
     configure_cloudinary()
@@ -78,7 +77,7 @@ async def get_all_pictures(
     - A list of PictureDB instances representing the retrieved pictures.
     """
 
-    if not current_user.admin:
+    if not current_user.confirmed:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to get all pictures")
 
     pictures = await repository_pictures.get_all_pictures(skip=skip, limit=limit, db=db)
@@ -106,16 +105,14 @@ async def get_one_picture(
     - The PictureDB instance representing the retrieved picture.
     """
 
+    if not current_user.confirmed:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to picture")
+
     picture = await repository_pictures.get_one_picture(picture_id=picture_id, db=db)
     if picture is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Picture not found")
 
-
-    if current_user.admin or picture.user_id == current_user.id:
-        return picture
-    else:
-
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to picture")
+    return picture
 
 
 @router.put("/{picture_id}", response_model=PictureResponse)
@@ -140,14 +137,17 @@ async def update_picture(
     Returns:
     - The URL of the updated picture as a PictureDB instance.
     """
+
     configure_cloudinary()
 
     random_string = generate_random_string()
 
     picture_data = await repository_pictures.get_one_picture(picture_id, db)
+
     if not picture_data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Picture not found")
-    if current_user.id != picture_data.user_id and not current_user.admin:
+
+    if not current_user.id == picture_data.user_id and not current_user.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update this picture")
 
     picture_uploaded = cloudinary.uploader.upload(picture.file, public_id=f'picture/{current_user.email}', overwrite=True)
@@ -155,8 +155,6 @@ async def update_picture(
 
     picture_url = await repository_pictures.update_picture(picture_id=picture_id, url=url, user=current_user, db=db)
 
-    if picture_url is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Picture not found")
     return picture_url
 
 
@@ -186,13 +184,10 @@ async def delete_picture(
     if picture is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Picture not found")
 
-    if current_user.id != picture.user_id and not current_user.admin:
+    if not current_user.id == picture.user_id and not current_user.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have permission to delete this picture")
 
     deleted_picture = await repository_pictures.delete_picture(picture_id=picture_id, db=db)
-
-    if deleted_picture is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Picture not found")
 
     return deleted_picture
 
@@ -229,10 +224,13 @@ async def edit_picture(
     - HTTPException: If an error occurs during the editing process, such as validation failure or database access issues.
     """
 
-    if current_user.admin or picture_db.user_id == current_user.id:
-        picture_db = await repository_pictures.get_one_picture(picture_id, db)
-    else:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to edit picture")
+    picture_db = await repository_pictures.get_one_picture(picture_id, db)
+
+    if picture_db is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Picture not found")
+
+    if not current_user.id == picture_db.user_id and not current_user.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update this picture")
 
     configure_cloudinary()
 

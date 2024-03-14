@@ -1,9 +1,5 @@
-from fastapi.testclient import TestClient
 from unittest.mock import patch
-from datetime import datetime
 
-from main import app
-from src.database.models import Comment
 from src.services.auth import auth_service
 from src.tests.conftest import login_user_token_created
 
@@ -11,12 +7,12 @@ from src.tests.conftest import login_user_token_created
 def test_get_all_comments_for_picture_if_found(session, client):
     response = client.get("api/comments/", params={"picture_id": 1})
     assert response.status_code == 200, response.text
-    assert response.json() == [{'content': 'test content 3', 'updated_at': None, 'id': 3, 'user_id': 1, 'picture_id': 1,
-                                'created_at': '2024-03-12T21:49:38.921709'},
-                               {'content': 'test content 1', 'updated_at': None, 'id': 1, 'user_id': 1, 'picture_id': 1,
-                                'created_at': '2024-03-12T21:42:38.921709'},
-                               {'content': 'test content 2', 'updated_at': None, 'id': 2, 'user_id': 1, 'picture_id': 1,
-                                'created_at': '2024-03-12T21:40:38.921709'}]
+    assert response.json() == [{"content": "test content 3", "updated_at": None, "id": 3, "user_id": 1, "picture_id": 1,
+                                "created_at": "2024-03-12T21:49:38.921709"},
+                               {"content": "test content 1", "updated_at": None, "id": 1, "user_id": 1, "picture_id": 1,
+                                "created_at": "2024-03-12T21:42:38.921709"},
+                               {"content": "test content 2", "updated_at": None, "id": 2, "user_id": 1, "picture_id": 1,
+                                "created_at": "2024-03-12T21:40:38.921709"}]
 
 
 def test_get_all_comments_for_picture_if_not_found(session, client):
@@ -34,8 +30,8 @@ def test_get_comment_if_found(session, client, user):
                                                          }, params={"comment_id": 1})
         data = response.json()
         assert response.status_code == 200, response.text
-        assert response.json() == {'content': 'test content 1', 'id': 1, 'user_id': 1, 'picture_id': 1,
-                                   'created_at': '2024-03-12T21:42:38.921709', 'updated_at': None}
+        assert response.json() == {"content": "test content 1", "id": 1, "user_id": 1, "picture_id": 1,
+                                   "created_at": "2024-03-12T21:42:38.921709", "updated_at": None}
 
 
 def test_get_comment_if_not_found(session, client, user):
@@ -83,7 +79,7 @@ def test_update_comment_if_not_found(session, client, user):
                                                          }, json={"content": "new content"}, params={"comment_id": 4})
         data = response.json()
         assert response.status_code == 404, response.text
-        assert data == {'detail': 'Comment not found'}
+        assert data == {"detail": "Comment not found"}
 
 
 def test_delete_comment_if_found(session, client, user):

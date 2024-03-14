@@ -49,7 +49,7 @@ async def remove_reaction(
     return await repository_reactions.remove_reaction_from_comment(comment_id, current_user, db)
 
 
-@router.get("/{comment_id}/")
+@router.get("/{comment_id}")
 async def get_reactions(
         comment_id: int,
         db: Session = Depends(get_db)
