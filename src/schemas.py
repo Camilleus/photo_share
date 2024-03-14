@@ -116,11 +116,8 @@ class PictureSearch(PictureBase):
     keywords: Optional[List[str]] | None
     id: Optional[List[int]] | None
     user_id: Optional[List[int]] | None
-    tags: Optional[List[str]] | None
+    tags: Optional[List[int]] | None
     description: Optional[str] | None
-
-    class Config:
-        from_attributes = True
 
     class Config:
         from_attributes = True
