@@ -3,9 +3,9 @@ from fastapi import HTTPException, Depends
 from typing import List, Optional
 from sqlalchemy import or_
 
-from src.database.models import Picture, Tag, PictureTagsAssociation
+from src.database.models import Picture, User, Tag, PictureTagsAssociation
 from src.database.db import get_db
-from src.schemas import PictureResponse
+from src.schemas import PictureResponse, UserResponse
 
 
 async def search_pictures(keyword: Optional[str] = "",
@@ -69,6 +69,9 @@ async def search_users(keyword: Optional[str] = "",
     if sort_order not in ["asc", "desc"]:
         sort_order = "desc"
 
+    users_ids = [id for (id) in db.query(User.id).filter(
+        User.id.in_(users_ids)).all()]
+    
     users = db.query(User).filter(
         or_(
             User.username.like(f"%{keyword}%"),
@@ -109,6 +112,9 @@ async def search_users_by_picture(keyword: Optional[str] = "",
     if sort_order not in ["asc", "desc"]:
         sort_order = "desc"
 
+    users_ids = [id for (id) in db.query(User.id).filter(
+        User.id.in_(users_ids)).all()]
+
     users = db.query(User).filter(
         or_(
             User.username.like(f"%{keyword}%"),
@@ -130,7 +136,7 @@ async def search_users_by_picture(keyword: Optional[str] = "",
             email=user.email,
             username=user.username
             pictures=user.pictures
-        )
+            )
         user_responses.append(user_response)
 
     return user_responses
