@@ -37,13 +37,13 @@ class UserResponse(BaseModel):
 
 
 class UserSearch(UserModel):
-    id: Optional[List[int]] = None
-    username: Optional[List[str]] = None
-    email: Optional[List[str]] = None
+    id: Optional[List[int]] | None
+    username: Optional[List[str]] | None
+    email: Optional[List[str]] | None
 
     class Config:
         from_attributes = True
-        
+
 
 class UserUpdateName(BaseModel):
     username: str = Field(min_length=5, max_length=16)
@@ -93,7 +93,7 @@ class PictureDB(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PictureDescription(BaseModel):
@@ -109,15 +109,18 @@ class PictureResponse(PictureBase):
     qr_code_picture: Optional[str] | None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PictureSearch(PictureBase):
-    keywords: Optional[List[str]] = None
-    id: Optional[List[int]] = None
-    user_id: Optional[List[int]] = None
-    picture_name: Optional[List[str]] = None
-    tags: Optional[List[str]] = None
+    keywords: Optional[List[str]] | None
+    id: Optional[List[int]] | None
+    user_id: Optional[List[int]] | None
+    tags: Optional[List[str]] | None
+    description: Optional[str] | None
+
+    class Config:
+        from_attributes = True
 
     class Config:
         from_attributes = True
@@ -130,12 +133,15 @@ class RatingValue(IntEnum):
     FOUR = 4
     FIVE = 5
 
+
 class Rating(BaseModel):
     picture_id: int
     rating: RatingValue
 
+
 class RatingPicture(BaseModel):
     picture_id: int
+
 
 class MessageBase(BaseModel):
     sender_id: int
@@ -185,13 +191,13 @@ class TagModel(BaseModel):
     id: int
     name: str
 
+
 class TagsResponseModel(BaseModel):
     """
     Response schema for the add_tags endpoint.
     """
     new_tags: List[TagModel]
     existing_tags: List[TagModel]
-    
 
 
 class ChangePasswordModel(BaseModel):

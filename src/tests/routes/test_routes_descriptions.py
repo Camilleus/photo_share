@@ -88,7 +88,6 @@ def test_upload_description_picture_not_found(user, session, client):
             },
             params={"picture_id": no_to_upload, "description": new_description},
         )
-        data = response.json()
 
         assert response.status_code == 404, response.text
 
@@ -155,7 +154,7 @@ def test_get_one_description_picture_found(user, session, client):
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
             },
-            )
+        )
         data = response.json()
 
         assert response.status_code == 200, response.text
@@ -177,10 +176,9 @@ def test_get_one_description_picture_found_unauthorized(user, session, client):
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
             },
-            )
+        )
 
         assert response.status_code == 401, response.text
-
 
 
 def test_get_one_description_picture_not_found(user, session, client):
@@ -244,7 +242,6 @@ def test_update_description_picture_found_unauthorized(user, session, client):
             },
             params={"new_description": updated_description},
         )
-        data = response.json()
 
         assert response.status_code == 403, response.text
 
@@ -266,6 +263,7 @@ def test_update_description_picture_not_found(admin, session, client, mock_pictu
             },
             params={"new_description": updated_description},
         )
+
         assert response.status_code == 404, response.text
 
 
@@ -282,12 +280,12 @@ def test_delete_description_picture_found(admin, session, client):
             headers={
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
-            }
+            },
         )
         data = response.json()
 
         assert response.status_code == 200, response.text
-        assert data["description"] == None
+        assert data["description"] is None
 
 
 def test_delete_description_picture_found_unauthorized(user, session, client):
@@ -303,9 +301,8 @@ def test_delete_description_picture_found_unauthorized(user, session, client):
             headers={
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
-            }
+            },
         )
-        data = response.json()
 
         assert response.status_code == 403, response.text
 

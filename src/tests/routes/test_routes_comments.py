@@ -82,8 +82,8 @@ def test_update_comment_if_not_found(session, client, user):
         assert data == {"detail": "Comment not found"}
 
 
-def test_delete_comment_if_found(session, client, user):
-    new_user = login_user_token_created(user, session)
+def test_delete_comment_if_admin(session, client, admin):
+    new_user = login_user_token_created(admin, session)
     with patch.object(auth_service, "r") as r_mock:
         r_mock.get.return_value = None
         response = client.delete("api/comments/1", headers={"accept": "application/json",
@@ -92,4 +92,28 @@ def test_delete_comment_if_found(session, client, user):
         data = response.json()
         assert response.status_code == 200, response.text
         assert data == {"message": "The comment deleted successfully"}
+
+
+def test_delete_comment_not_found_if_admin_(session, client, admin):
+    new_user = login_user_token_created(admin, session)
+    with patch.object(auth_service, "r") as r_mock:
+        r_mock.get.return_value = None
+        response = client.delete("api/comments/4", headers={"accept": "application/json",
+                                                            "Authorization": f"Bearer {new_user['access_token']}"
+                                                            }, params={"comment_id": 4})
+        data = response.json()
+        assert response.status_code == 403, response.text
+        assert data == {"message": "The comment doesn't exist."}
+
+
+def test_delete_comment_if_user(session, client, user):
+    new_user = login_user_token_created(user, session)
+    with patch.object(auth_service, "r") as r_mock:
+        r_mock.get.return_value = None
+        response = client.delete("api/comments/1", headers={"accept": "application/json",
+                                                            "Authorization": f"Bearer {new_user['access_token']}"
+                                                            }, params={"comment_id": 1})
+        data = response.json()
+        assert response.status_code == 403, response.text
+        assert data == {"detail": "You don't have permission to perform this action."}
 

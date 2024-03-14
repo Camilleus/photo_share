@@ -38,7 +38,7 @@ def test_upload_picture(user, session, client, mock_picture):
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
             },
-            files=mock_picture1
+            files=mock_picture1,
         )
         data = response.json()
 
@@ -62,7 +62,7 @@ def test_upload_picture_unauthorized(user, session, client, mock_picture):
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
             },
-            files=mock_picture1
+            files=mock_picture1,
         )
 
         assert response.status_code == 401, response.text
@@ -191,6 +191,7 @@ def test_update_picture_found(admin, session, client, mock_picture):
             },
             files=mock_picture1
         )
+
         data = response.json()
 
         assert response.status_code == 200, response.text
@@ -214,7 +215,7 @@ def test_update_picture_found_unauthorized(user, session, client, mock_picture):
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
             },
-            files=mock_picture1
+            files=mock_picture1,
         )
 
         assert response.status_code == 403, response.text
@@ -235,7 +236,7 @@ def test_update_picture_not_found(admin, session, client, mock_picture):
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
             },
-            files=mock_picture1
+            files=mock_picture1,
         )
 
         assert response.status_code == 404, response.text
@@ -254,7 +255,7 @@ def test_delete_picture_found(admin, session, client):
             headers={
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
-            }
+            },
         )
         data = response.json()
 
@@ -277,7 +278,7 @@ def test_delete_picture_found_unauthorized(user, session, client):
             headers={
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
-            }
+            },
         )
 
         assert response.status_code == 403, response.text
@@ -296,7 +297,7 @@ def test_delete_picture_not_found(admin, session, client):
             headers={
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
-            }
+            },
         )
 
         assert response.status_code == 404, response.text

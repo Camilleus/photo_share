@@ -248,3 +248,4 @@ async def edit_picture(
     qr = await generate_qr_and_upload_to_cloudinary(picture_edited_url, picture_edited, picture_version)
 
     return await repository_pictures.upload_edited_picture(picture=picture_db, picture_edited=picture_edited, picture_edited_url=picture_edited_url, qr=qr, db=db)
+

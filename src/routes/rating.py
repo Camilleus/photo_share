@@ -1,4 +1,4 @@
-from fastapi import Depends, status, APIRouter
+from fastapi import Depends, HTTPException, status, APIRouter
 from sqlalchemy.orm import Session
 
 from src.database.db import get_db
@@ -6,6 +6,7 @@ from src.database.models import User
 from src.repository.rating import add_rating_to_picture, remove_rating_from_picture, get_rating, get_average_of_rating
 from src.schemas import Rating, RatingPicture
 from src.services.auth import auth_service
+from src.services.auth_roles import is_admin
 
 router = APIRouter(prefix="/rating", tags=["rating"])
 
@@ -26,18 +27,27 @@ async def create_rating(
     return await add_rating_to_picture(data.picture_id, data.rating, current_user, db)
 
 
-@router.delete("/{picture_id}")
+@router.delete("/{rating}")
 async def delete_rating(
         picture_id: int,
+        user_id: int,
         current_user: User = Depends(auth_service.get_current_user),
-        db: Session = Depends(get_db)
-):
+        db: Session = Depends(get_db)):
     """
     Removes a user's rating for a picture.
 
     - **picture_id**: The identifier of the picture from which the rating is to be removed.
+    - **user_id**: The identifier of the user whose rating is to be removed (only accessible by admin).
     """
-    result = await remove_rating_from_picture(picture_id, current_user, db)
+    if not current_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to delete rating")
+    is_admin(current_user)
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    result = await remove_rating_from_picture(picture_id, user_id, db)
     return result
 
 @router.post("/picture")

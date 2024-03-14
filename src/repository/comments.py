@@ -91,10 +91,7 @@ async def remove_comment(comment_id: int, user: User, db: Session) -> Union[dict
         comments.
     """
     comment = db.query(Comment).filter(Comment.id == comment_id).first()
-    if user.admin or user.moderator:
-        if comment:
-            db.delete(comment)
-            db.commit()
-        return comment
-    else:
-        return {"message": "You can't delete the comment."}
+    if comment:
+        db.delete(comment)
+        db.commit()
+    return comment

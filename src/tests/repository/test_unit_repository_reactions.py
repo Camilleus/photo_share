@@ -15,7 +15,7 @@ from src.repository.reactions import (
 )
 
 
-class TestUnitRepositoryComments(unittest.IsolatedAsyncioTestCase):
+class TestUnitRepositoryReactions(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         self.session = MagicMock(spec=Session)
@@ -59,7 +59,7 @@ class TestUnitRepositoryComments(unittest.IsolatedAsyncioTestCase):
     async def test_get_all_reactions_for_comment_not_found(self):
         self.session.query(Reaction).filter().first.return_value = None
         result = await get_reactions(comment_id=1, db=self.session)
-        self.assertEqual(result, {"message": "No reaction for comment"})
+        self.assertEqual(result, {})
 
     async def test_get_number_of_reactions_found(self):
         reactions = self.reaction_2
@@ -90,10 +90,9 @@ class TestUnitRepositoryComments(unittest.IsolatedAsyncioTestCase):
     #     result = await update_reaction_to_comment(comment_id=1, reaction=new_reaction, user=self.user, db=self.session)
     #     self.assertEqual(result, reaction)
 
-    # async def test_add_reaction_if_not_record(self):
-    #     reaction = self.reaction_1
-    #     result = await add_reaction_to_comment(comment_id=1, reaction="like", user=self.user, db=self.session)
-    #     self.assertEqual(result, {"message": "The reaction was added"})
+    async def test_add_reaction_if_not_record(self):
+        result = await add_reaction_to_comment(comment_id=1, reaction="like", user=self.user, db=self.session)
+        self.assertEqual(result, {"message": "The reaction was added"})
 
     async def test_remove_reaction_record_found(self):
         reactions = self.reaction_1

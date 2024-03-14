@@ -1,0 +1,12 @@
+{% include 'layout.html' %}
+
+<div class="container">
+    <h2>Edit Comment</h2>
+    <form action="/comment/edit/{{ comment.id }}" method="post">
+        <div class="form-group">
+            <label for="content">Comment:</label>
+            <textarea class="form-control" id="content" name="content" rows="3">{{ comment.content }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Comment</button>
+    </form>
+</div>

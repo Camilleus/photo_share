@@ -54,7 +54,7 @@ class TestUnitRepositoryComments(unittest.IsolatedAsyncioTestCase):
         comments = [self.comment1, self.comment2, self.comment3]
         skip = 0
         limit = 20
-        self.session.query(Comment).filter().offset(skip).limit(limit).all.return_value = comments
+        self.session.query(Comment).filter().order_by(Comment.created_at.desc()).offset(skip).limit(limit).all.return_value = comments
 
         result = await get_comments(picture_id=1, db=self.session, skip=skip, limit=limit)
 
