@@ -53,3 +53,84 @@ async def search_pictures(keyword: Optional[str] = "",
         picture_responses.append(picture_response)
 
     return picture_responses
+
+
+
+
+async def search_users(keyword: Optional[str] = "",
+                       sort_by: Optional[str] = "created_at",
+                       sort_order: Optional[str] = "desc",
+                       db: Session = Depends(get_db)
+                       ) -> List[UserResponse]:
+
+    if sort_by not in ["rating", "created_at"]:
+        sort_by = "created_at"
+
+    if sort_order not in ["asc", "desc"]:
+        sort_order = "desc"
+
+    users = db.query(User).filter(
+        or_(
+            User.username.like(f"%{keyword}%"),
+            User.email.like(f"%{keyword}%"),
+            User.id.in_(users_ids)
+        )
+    ).all()
+
+    if not users:
+        raise HTTPException(status_code=404, detail="Users not found")
+
+    users = sorted(users, key=lambda x: getattr(x, sort_by), reverse=(sort_order == "desc"))
+
+    user_responses = []
+    for user in users:
+        user_response = UserResponse(
+            id=user.id,
+            created_at=user.created_at,
+            email=user.email,
+            username=user.username
+        )
+        user_responses.append(user_response)
+
+    return user_responses
+
+
+
+
+async def search_users_by_picture(keyword: Optional[str] = "",
+                       sort_by: Optional[str] = "created_at",
+                       sort_order: Optional[str] = "desc",
+                       db: Session = Depends(get_db)
+                       ) -> List[UserResponse]:
+
+    if sort_by not in ["rating", "created_at"]:
+        sort_by = "created_at"
+
+    if sort_order not in ["asc", "desc"]:
+        sort_order = "desc"
+
+    users = db.query(User).filter(
+        or_(
+            User.username.like(f"%{keyword}%"),
+            User.email.like(f"%{keyword}%"),
+            User.id.in_(users_ids)
+        )
+    ).all()
+
+    if not users:
+        raise HTTPException(status_code=404, detail="Users not found")
+
+    users = sorted(users, key=lambda x: getattr(x, sort_by), reverse=(sort_order == "desc"))
+
+    user_responses = []
+    for user in users:
+        user_response = UserResponse(
+            id=user.id,
+            created_at=user.created_at,
+            email=user.email,
+            username=user.username
+            pictures=user.pictures
+        )
+        user_responses.append(user_response)
+
+    return user_responses
