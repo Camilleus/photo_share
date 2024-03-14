@@ -130,13 +130,7 @@ async def search_users_by_picture(keyword: Optional[str] = "",
 
     user_responses = []
     for user in users:
-        user_response = UserResponse(
-            id=user.id,
-            created_at=user.created_at,
-            email=user.email,
-            username=user.username
-            pictures=user.pictures
-            )
+        user_response = UserResponse(id=user.id, created_at=user.created_at, email=user.email, username=user.username, pictures=user.pictures)
         user_responses.append(user_response)
 
     return user_responses
