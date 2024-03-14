@@ -19,6 +19,7 @@ PhotoShare is a versatile REST API application designed to facilitate photo shar
 - 🐘 Alembic
 - 🔄 Redis
 - 📚 Poetry
+- 📧 MailGun
 
 ## 🔐 Registration and Authentication
 
@@ -171,6 +172,16 @@ You can now access the PhotoShare application either through your local setup at
 - Utilize Cloudinary transformations for image operations.
 - Leverage QR code generation for sharing transformed images.
 - Administrators can perform CRUD operations on user photos and comments.
+
+## 🧑🏻‍🤝‍🧑🏽 Creators
+
+- github.com/sebastianLedzianowski - Project Manager
+- github.com/Camilleus - Scrum Master
+- github.com/OktawianCzakiert - Developer
+- github.com/Heesej - Developer
+- github.com/bgozlinski - Developer
+- github.com/julotec - Developer
+- github.com/KrzysztofKazimierczak - Developer
 
 ## 🤝 Contributing
 
