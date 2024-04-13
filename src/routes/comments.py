@@ -120,7 +120,7 @@ async def remove_contact(
     """
     comment = await repository_comments.remove_comment(comment_id, current_user, db)
     if comment is None:
-        return JSONResponse(status_code=status.HTTP_403_FORBIDDEN, content={"message": "You can't delete the comment."})
+        return JSONResponse(status_code=status.HTTP_403_FORBIDDEN, content={"message": "The comment doesn't exist."})
     return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "The comment deleted successfully"})
 
     

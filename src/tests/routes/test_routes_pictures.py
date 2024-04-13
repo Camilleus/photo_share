@@ -1,15 +1,13 @@
 import pytest
-from fastapi.testclient import TestClient
+
 from unittest.mock import patch, MagicMock
 from datetime import datetime
 
-from main import app
 from src.database.models import Picture
 from src.services.auth import auth_service
 from src.tests.conftest import login_user_token_created, login_user_token_created_unconfirmed
 from src.routes import pictures
 
-client = TestClient(app)
 
 
 def create_x_pictures(session, no_of_pictures):
@@ -38,7 +36,7 @@ def test_upload_picture(user, session, client, mock_picture):
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
             },
-            files=mock_picture1
+            files=mock_picture1,
         )
         data = response.json()
 
@@ -62,7 +60,7 @@ def test_upload_picture_unauthorized(user, session, client, mock_picture):
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
             },
-            files=mock_picture1
+            files=mock_picture1,
         )
 
         assert response.status_code == 401, response.text
@@ -92,24 +90,6 @@ def test_get_all_pictures(user, session, client):
             assert data[i]["picture_url"] == pictures[i].picture_url
             assert data[i]["description"] == pictures[i].description
             assert "created_at" in data[i]
-
-
-def test_get_all_pictures_unauthorized(user, session, client):
-    new_user = login_user_token_created_unconfirmed(user, session)
-    no_of_pictures = 4
-    pictures = create_x_pictures(session, no_of_pictures)
-
-    with patch.object(auth_service, 'r') as r_mock:
-        r_mock.get.return_value = None
-        response = client.get(
-            "/api/pictures/",
-            headers={
-                'accept': 'application/json',
-                "Authorization": f"Bearer {new_user['access_token']}"
-            },
-        )
-
-        assert response.status_code == 401, response.text
 
 
 def test_get_one_picture_found(user, session, client):
@@ -191,6 +171,7 @@ def test_update_picture_found(admin, session, client, mock_picture):
             },
             files=mock_picture1
         )
+
         data = response.json()
 
         assert response.status_code == 200, response.text
@@ -214,7 +195,7 @@ def test_update_picture_found_unauthorized(user, session, client, mock_picture):
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
             },
-            files=mock_picture1
+            files=mock_picture1,
         )
 
         assert response.status_code == 403, response.text
@@ -235,7 +216,7 @@ def test_update_picture_not_found(admin, session, client, mock_picture):
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
             },
-            files=mock_picture1
+            files=mock_picture1,
         )
 
         assert response.status_code == 404, response.text
@@ -254,7 +235,7 @@ def test_delete_picture_found(admin, session, client):
             headers={
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
-            }
+            },
         )
         data = response.json()
 
@@ -277,7 +258,7 @@ def test_delete_picture_found_unauthorized(user, session, client):
             headers={
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
-            }
+            },
         )
 
         assert response.status_code == 403, response.text
@@ -296,13 +277,13 @@ def test_delete_picture_not_found(admin, session, client):
             headers={
                 'accept': 'application/json',
                 "Authorization": f"Bearer {new_user['access_token']}"
-            }
+            },
         )
 
         assert response.status_code == 404, response.text
 
 @pytest.mark.asyncio
-async def test_edit_picture(admin, session):
+async def test_edit_picture(admin, session, client):
     new_user = login_user_token_created(admin, session)
 
     picture_id = 1

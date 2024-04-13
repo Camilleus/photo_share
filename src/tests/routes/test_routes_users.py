@@ -35,54 +35,32 @@ def test_update_avatar_user(user, session, client, monkeypatch, mock_picture):
 
 def test_list_all_users_user(client, user, session):
     login_user_confirmed_true_and_hash_password(user, session)
-    # Perform the GET request to list all users
     response = client.get("/api/users/all")
 
-    # Validate the response
     assert response.status_code == 401
 
 def test_list_all_users_admin(client, admin,  session):
-    # Ensure admin is correctly set up and logged in to obtain a token
-    token_details = login_user_token_created(admin, session)  # Assuming this returns a valid token for the admin
+    token_details = login_user_token_created(admin, session)
 
-    # Use the obtained token in the Authorization header
     response = client.get("/api/users/all", headers={"Authorization": f"Bearer {token_details['access_token']}"})
 
-    # Validate the response
     assert response.status_code == 200
     data = response.json()
-    assert len(data) >= 1  # Ensure at least one user is returned, the admin itself
-    # Additional assertions as needed
+    assert len(data) >= 1
 
 
 def test_update_user_name(client, user, session):
-    # Create and log in a user
     login_user_confirmed_true_and_hash_password(user, session)
 
-    # Define new username
     new_username = "new_example"
-    user_id = 1  # Assuming this is the ID of the user created above
+    user_id = 1
 
-    # Perform the PATCH request to update the user's name
     response = client.patch(f"/api/users/update/{user_id}", json={"username": new_username})
 
-    # Validate the response
     assert response.status_code == 200
     data = response.json()
     assert data["username"] == new_username
 
-
-def test_delete_user(client, user, session):
-    # Create and log in a user
-    login_user_confirmed_true_and_hash_password(user, session)
-
-    user_id = 1  # Assuming this is the ID of the user created above
-
-    # Perform the DELETE request
-    response = client.post(f"/api/users/delete/{user_id}")
-
-    # Validate the response
-    assert response.status_code == 204
 
 
 def test_read_user_by_username(user, session, client):

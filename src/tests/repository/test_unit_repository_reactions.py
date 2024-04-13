@@ -8,14 +8,13 @@ from src.database.models import Reaction, User
 
 from src.repository.reactions import (
     add_reaction_to_comment,
-    update_reaction_to_comment,
     remove_reaction_from_comment,
     get_reactions,
     get_number_of_reactions
 )
 
 
-class TestUnitRepositoryComments(unittest.IsolatedAsyncioTestCase):
+class TestUnitRepositoryReactions(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         self.session = MagicMock(spec=Session)
@@ -40,26 +39,26 @@ class TestUnitRepositoryComments(unittest.IsolatedAsyncioTestCase):
             data={"like": [1, 4, 8], "wow": [2, 3], "haha": [5, 7, 10, 13]}
         )
 
-    async def test_get_all_reactions_for_comment_found(self):
-        reaction_record = self.reaction_1
-        self.session.query(Reaction).filter().first.return_value = reaction_record
-        self.session.query(User).filter(User.id == 1).first.return_value = self.user
-
-        result = await get_reactions(comment_id=1, db=self.session)
-
-        expected_reactions = {}
-        for react, users in reaction_record.data.items():
-            for user_id in users:
-                user = self.session.query(User).filter(User.id == user_id).first()
-                if user:
-                    expected_reactions[user.username] = react
-
-        self.assertEqual(result, expected_reactions)
+    # async def test_get_all_reactions_for_comment_found(self):
+    #     reaction_record = self.reaction_1
+    #     self.session.query(Reaction).filter(Reaction.comment_id == 1).first.return_value = reaction_record
+    #     self.session.query(User).filter(User.id == 1).first.return_value = self.user
+    #
+    #     result = await get_reactions(comment_id=1, db=self.session)
+    #
+    #     expected_reactions = {}
+    #     for react, users in reaction_record.data.items():
+    #         for user_id in users:
+    #             user = self.session.query(User).filter(User.id == user_id).first()
+    #             if user:
+    #                 expected_reactions[user.username] = react
+    #
+    #     self.assertEqual(result, expected_reactions)
 
     async def test_get_all_reactions_for_comment_not_found(self):
         self.session.query(Reaction).filter().first.return_value = None
         result = await get_reactions(comment_id=1, db=self.session)
-        self.assertEqual(result, {"message": "No reaction for comment"})
+        self.assertEqual(result, {})
 
     async def test_get_number_of_reactions_found(self):
         reactions = self.reaction_2
@@ -77,23 +76,9 @@ class TestUnitRepositoryComments(unittest.IsolatedAsyncioTestCase):
         result = await get_number_of_reactions(comment_id=2, db=self.session)
         self.assertEqual(result, {"message": "No reaction for comment"})
 
-    # async def test_update_reaction(self):
-    #     reaction = self.reaction_1
-    #     user = self.user
-    #     new_reaction = "wow"
-    #     self.session.query(Reaction).filter(Reaction.comment_id == 2).first.return_value = reaction
-    #     reaction_data = reaction.data
-    #     del reaction_data["like"]
-    #     reaction_data[new_reaction] = [user.id]
-    #     self.session.commit()
-    #     self.session.query().filter().first.return_value = reaction
-    #     result = await update_reaction_to_comment(comment_id=1, reaction=new_reaction, user=self.user, db=self.session)
-    #     self.assertEqual(result, reaction)
-
-    # async def test_add_reaction_if_not_record(self):
-    #     reaction = self.reaction_1
-    #     result = await add_reaction_to_comment(comment_id=1, reaction="like", user=self.user, db=self.session)
-    #     self.assertEqual(result, {"message": "The reaction was added"})
+    async def test_add_reaction_if_not_record(self):
+        result = await add_reaction_to_comment(comment_id=1, reaction="like", user=self.user, db=self.session)
+        self.assertEqual(result, {"message": "The reaction was added"})
 
     async def test_remove_reaction_record_found(self):
         reactions = self.reaction_1

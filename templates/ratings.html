@@ -1,0 +1,20 @@
+{% include 'layout.html' %}
+
+<div class="container mt-5">
+    <h2>Ratings for Picture ID: {{ picture_id }}</h2>
+    <div class="list-group">
+        {% for rating, username in ratings %}
+        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1">Username: {{ username }}</h5>
+                <p class="mb-1">Rating: {{ rating.rat }}</p>
+            </div>
+            <form action="/rating/{{ rating.id }}/delete" method="post">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">Delete Rating</button>
+            </form>
+        </div>
+        {% else %}
+        <p>No ratings available.</p>
+        {% endfor %}
+    </div>
+</div>

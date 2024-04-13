@@ -93,3 +93,22 @@ def test_routes_rating(user, admin, picture_s, session, client):
     assert response.status_code == 200
     assert response.json() == {"message": "No rating found for this user and picture."}
 
+def test_routes_rating_admin(user, admin, picture_s, session, client):
+    user_1 = login_user_token_created(user, session)
+    user_2 = login_user_token_created(admin, session)
+    picture = picture_s
+
+    client.post(
+        "/api/rating/",
+        headers={"Authorization": f"Bearer {user_1.get('access_token')}"},
+        json={"picture_id": 1,
+              "rating": 3}
+    )
+
+    response = client.delete(
+        "/api/rating/admin/?picture_id=1&user_id=1",
+        headers={"Authorization": f"Bearer {user_2.get('access_token')}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"message": "Rating removed successfully."}

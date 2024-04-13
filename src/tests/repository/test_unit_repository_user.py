@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import MagicMock
 from fastapi import HTTPException
-from src.schemas import UserDb
 from sqlalchemy.orm import Session
 
 from src.database.models import User
@@ -48,10 +47,12 @@ class TestUsers(unittest.IsolatedAsyncioTestCase):
             confirmed=False,
         )
         self.session.query().filter().first.return_value = user
-
         result = await get_user_by_username(username=user.username, db=self.session)
 
-        self.assertEqual(result, user)
+        self.assertEqual(result.id, user.id)
+        self.assertEqual(result.username, user.username)
+        self.assertEqual(result.email, user.email)
+        self.assertEqual(result.avatar, user.avatar)
 
     async def test_get_nonexistent_user_by_username(self):
         self.session.query().filter().first.return_value = None

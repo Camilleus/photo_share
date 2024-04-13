@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from src.database.models import Rating, User
 
+
 async def add_rating_to_picture(picture_id: int, rating: int, user: User, db: Session):
     """
     Adds or updates a rating for a picture by a specific user.
@@ -39,6 +40,26 @@ async def remove_rating_from_picture(picture_id: int, user: User, db: Session):
             dict: A message indicating the outcome of the operation.
         """
     rating_record = db.query(Rating).filter(and_(Rating.picture_id == picture_id, Rating.user_id == user.id)).first()
+    if rating_record:
+        db.delete(rating_record)
+        db.commit()
+        return {"message": "Rating removed successfully."}
+    else:
+        return {"message": "No rating found for this user and picture."}
+
+async def remove_rating_from_picture_admin(picture_id: int, user_id: int, db: Session):
+    """
+        Removes a rating from a picture by a specific user.
+
+        Parameters:
+            picture_id (int): The ID of the picture from which to remove the rating.
+            user_id (User): The user whose rating is to be removed.
+            db (Session): Database session object.
+
+        Returns:
+            dict: A message indicating the outcome of the operation.
+        """
+    rating_record = db.query(Rating).filter(and_(Rating.picture_id == picture_id, Rating.user_id == user_id)).first()
     if rating_record:
         db.delete(rating_record)
         db.commit()

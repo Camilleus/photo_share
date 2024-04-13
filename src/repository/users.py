@@ -1,8 +1,5 @@
 from typing import Type, List
-
 from fastapi import HTTPException
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from src.database.models import User

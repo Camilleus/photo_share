@@ -1,4 +1,4 @@
-from typing import List, Dict, Union
+from typing import List
 from sqlalchemy.orm import Session
 from src.database.models import Tag, PictureTagsAssociation
 from src.schemas import TagModel, TagsResponseModel

@@ -37,7 +37,6 @@ async def upload_picture(
     Returns:
     - The URL of the uploaded picture as a PictureDB instance.
     """
-
     if not current_user.confirmed:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to upload picture")
 
@@ -58,7 +57,6 @@ async def upload_picture(
 async def get_all_pictures(
         skip: int = 0,
         limit: int = 20,
-        current_user: User = Depends(auth_service.get_current_user),
         db: Session = Depends(get_db)
 ) -> list[Type[Picture]]:
     """
@@ -76,11 +74,8 @@ async def get_all_pictures(
     Returns:
     - A list of PictureDB instances representing the retrieved pictures.
     """
-
-    if not current_user.confirmed:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access to get all pictures")
-
     pictures = await repository_pictures.get_all_pictures(skip=skip, limit=limit, db=db)
+
     return pictures
 
 
@@ -248,3 +243,4 @@ async def edit_picture(
     qr = await generate_qr_and_upload_to_cloudinary(picture_edited_url, picture_edited, picture_version)
 
     return await repository_pictures.upload_edited_picture(picture=picture_db, picture_edited=picture_edited, picture_edited_url=picture_edited_url, qr=qr, db=db)
+

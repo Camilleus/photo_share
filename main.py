@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi_limiter import FastAPILimiter
 from starlette.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from src.routes import (users, auth, messages, tags, search, comments, pictures, descriptions, admin, reactions,
+from src.routes import (users, auth, messages, tags, search, comments, pictures, descriptions, reactions,
                         rating, main_router)
 from src.services.secrets_manager import SecretsManager
 
@@ -35,7 +35,6 @@ app.include_router(descriptions.router, prefix='/api')
 app.include_router(tags.router, prefix='/api')
 app.include_router(comments.router, prefix='/api')
 app.include_router(reactions.router, prefix='/api')
-app.include_router(admin.router, prefix='/api')
 
 REDIS_HOST = SecretsManager.get_secret("REDIS_HOST")
 REDIS_PORT = SecretsManager.get_secret("REDIS_PORT")
