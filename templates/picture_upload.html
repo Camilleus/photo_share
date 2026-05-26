@@ -3,29 +3,29 @@
 <div class="container">
     <div class="card">
         <div class="card-header">
-            Upload a Photo
+            {{ t(request, 'upload_picture') }}
         </div>
         <div class="card-body">
 
             <form method="POST" action="/picture/upload" enctype="multipart/form-data">
 
                 <div class="form-group">
-                    <label>Picture</label>
+                    <label>{{ t(request, 'upload_picture') }}</label>
                     <input type="file" class="form-control-file" name="picture" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Description</label>
+                    <label>{{ t(request, 'description') }}</label>
                     <textarea class="form-control" name="description" rows="3" required></textarea>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Upload Photo</button>
+                <button type="submit" class="btn btn-primary">{{ t(request, 'upload_picture') }}</button>
 
             </form>
         </div>
 
         <div class="card-footer text-muted">
-            Go back to <a href="/">home page</a>.
+             <a href="/">{{ t(request, 'home') }}</a>
         </div>
     </div>
 </div>

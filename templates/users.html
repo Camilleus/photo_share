@@ -4,7 +4,7 @@
 
     <div class="container">
         <div class="card-header">
-            Users Admin Panel
+            {{ t(request, 'admin_panel') }}
         </div>
         <div class="card-body">
             <table class="table table-hover">
@@ -12,8 +12,8 @@
                 <thead>
                 <tr>
                     <th scope="col">#</th>
-                    <th scope="col">Username</th>
-                    <th scope="col">Email</th>
+                    <th scope="col">{{ t(request, 'username') }}</th>
+                    <th scope="col">{{ t(request, 'email') }}</th>
                     <th scope="col">Created</th>
                     <th scope="col">Confirmed</th>
                     <th scope="col">Role</th>
@@ -31,7 +31,7 @@
                         <td>{{ details.confirmed }}</td>
                         <td>
                             {% if details.admin %}
-                                Admin
+                                {{ t(request, 'admin') }}
                             {% elif details.moderator %}
                                 Moderator
                             {% else %}
@@ -41,7 +41,7 @@
                         <td>
 
                             <!-- View Button -->
-                            <a href="/users/{{ details.id }}" class="btn btn-primary btn-sm">View</a>
+                            <a href="/users/{{ details.id }}" class="btn btn-primary btn-sm">{{ t(request, 'profile') }}</a>
 
                             <!-- Ban/Unban Button -->
                             <form action="/users/toggle-ban/{{ details.id }}" method="post"
@@ -49,11 +49,11 @@
                                 <input type="hidden" name="user_id" value="{{ details.id }}">
                                 {% if details.ban_status %}
                                     <button type="submit" class="btn btn-warning btn-sm"
-                                            onclick="return confirm('Are you sure you want to unban this user?');">Unban
+                                            onclick="return confirm('{{ t(request, 'unban') }}?');">{{ t(request, 'unban') }}
                                     </button>
                                 {% else %}
                                     <button type="submit" class="btn btn-warning btn-sm"
-                                            onclick="return confirm('Are you sure you want to ban this user?');">Ban
+                                            onclick="return confirm('{{ t(request, 'ban') }}?');">{{ t(request, 'ban') }}
                                     </button>
                                 {% endif %}
                             </form>
@@ -62,8 +62,8 @@
                             <form action="/users/delete/{{ details.id }}" method="post" style="display: inline-block;">
                                 <input type="hidden" name="user_id" value="{{ details.id }}">
                                 <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
-                                    Delete
+                                        onclick="return confirm('{{ t(request, 'delete') }}?');">
+                                    {{ t(request, 'delete') }}
                                 </button>
                             </form>
                         </td>

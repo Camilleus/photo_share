@@ -3,24 +3,24 @@
 <div class="container">
     <div class="card">
         <div class="card-header">
-            Share a Story
+            {{ t(request, 'upload_story') }}
         </div>
         <div class="card-body">
 
             <form method="POST" action="/api/stories/upload" enctype="multipart/form-data">
 
                 <div class="form-group mb-3">
-                    <label>Story Image</label>
+                    <label>{{ t(request, 'upload_story') }}</label>
                     <input type="file" class="form-control" name="story_image" required>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100">Post Story</button>
+                <button type="submit" class="btn btn-primary w-100">{{ t(request, 'upload_story') }}</button>
 
             </form>
         </div>
 
         <div class="card-footer text-muted small">
-            Stories disappear after 24 hours.
+            <a href="/">{{ t(request, 'home') }}</a>
         </div>
     </div>
 </div>
