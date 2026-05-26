@@ -64,6 +64,8 @@ class Picture(Base):
     picture_edited_url = Column(String(255), nullable=True)
     qr_code_picture = Column(String(255), nullable=True)
     qr_code_picture_edited = Column(String(255), nullable=True)
+    picture_secondary_url = Column(String(255), nullable=True)
+    is_bereal = Column(Boolean, default=False)
     description = Column(String, nullable=True)
     created_at = Column('created_at', DateTime, default=func.now())
     user_id = Column('user_id', ForeignKey('user.id', ondelete='CASCADE'), default=None)
@@ -184,8 +186,10 @@ class User(Base):
     moderator = Column(Boolean, default=False)
     ban_status = Column(Boolean, default=False)
     qr_code = Column(String(255), nullable=True)
+    last_bereal_post_at = Column(DateTime, nullable=True)
 
     pictures = relationship('Picture', back_populates='user')
+    stories = relationship('Story', back_populates='user', cascade='all, delete-orphan')
     comments = relationship('Comment', back_populates='user')
     sent_messages = relationship('Message', back_populates='sender', foreign_keys='Message.sender_id')
     received_messages = relationship('Message', back_populates='receiver', foreign_keys='Message.receiver_id')
@@ -235,3 +239,17 @@ class Message(Base):
 
     sender = relationship('User', back_populates='sent_messages', foreign_keys=[sender_id])
     receiver = relationship('User', back_populates='received_messages', foreign_keys=[receiver_id])
+
+
+class Story(Base):
+    """
+    SQLAlchemy model representing a story.
+    """
+    __tablename__ = "story"
+
+    id = Column(Integer, primary_key=True, index=True)
+    image_url = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=func.now())
+    user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'))
+
+    user = relationship('User', back_populates='stories')

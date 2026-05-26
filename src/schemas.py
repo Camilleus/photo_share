@@ -264,3 +264,13 @@ class ReactionName(str, Enum):
     wow = "wow"
     haha = "haha"
     dislike = "dislike"
+
+
+class StoryResponse(BaseModel):
+    id: int
+    image_url: str
+    created_at: datetime
+    user_id: int
+
+    class Config:
+        from_attributes = True

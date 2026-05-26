@@ -1,17 +1,83 @@
 {% include 'layout.html' %}
 
 <div class="container">
-    <div class="image-gallery">
-        <div class="row">
-            {% for picture in pictures %}
-                <div class="col-md-4">
-                    <a href="/picture/{{ picture.id }}">
-                        <img src="{{ picture.picture_url }}" alt="Image">
-                    </a>
+    <div class="row">
+        <div class="col-12">
+            <!-- Stories Bar -->
+            <div class="stories-container mt-3">
+                <div class="story-item ml-3">
+                    <div class="story-avatar-wrapper" onclick="window.location.href='/story/upload'">
+                        <img src="{{ user.avatar or 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }}" alt="Your Story" class="story-avatar" style="opacity: 0.6;">
+                        <div style="position: absolute; bottom: 20px; right: 10px; background: #0095f6; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; border: 2px solid white; font-size: 14px;">+</div>
+                    </div>
+                    <span class="story-username">Your Story</span>
                 </div>
-                {% if loop.index % 3 == 0 %}
-                    </div><div class="row">
-                {% endif %}
+
+                {% for story in stories %}
+                <div class="story-item">
+                    <div class="story-avatar-wrapper">
+                        <img src="{{ story.user.avatar or 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }}" alt="Story" class="story-avatar">
+                    </div>
+                    <span class="story-username">{{ story.user.username }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% for picture in pictures %}
+                <div class="instagram-card">
+                    <div class="instagram-card-header">
+                        <img src="{{ picture.user.avatar or 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }}" alt="Avatar">
+                        <a href="/users/{{ picture.user_id }}" class="username">{{ picture.user.username }}</a>
+                    </div>
+
+                    <div class="instagram-card-image">
+                        {% if picture.is_bereal and not user_has_posted_bereal and picture.user_id != user.id %}
+                            <div class="locked-overlay">
+                                <div>
+                                    <h3>⚠️ Post your daily BeReal to view this post</h3>
+                                    <a href="/picture/upload" class="btn btn-primary btn-sm mt-2">Post BeReal</a>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <img src="{{ picture.picture_url }}" alt="Image">
+
+                        {% if picture.picture_secondary_url %}
+                            <div class="bereal-secondary">
+                                <img src="{{ picture.picture_secondary_url }}" alt="Secondary Image">
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="instagram-card-content">
+                        <div class="instagram-card-actions">
+                            <form action="/picture/rate/{{ picture.id }}" method="POST" style="display: inline;">
+                                <input type="hidden" name="rating" value="5">
+                                <button type="submit" style="background: none; border: none; padding: 0;">
+                                    <i class="fa-regular fa-heart"></i>
+                                </button>
+                            </form>
+                            <a href="/picture/{{ picture.id }}"><i class="fa-regular fa-comment"></i></a>
+                            <i class="fa-regular fa-paper-plane"></i>
+                        </div>
+
+                        <div class="instagram-card-likes">
+                            {{ picture.ratings|length }} likes
+                        </div>
+
+                        <div class="instagram-card-caption">
+                            <span class="username">{{ picture.user.username }}</span> {{ picture.description }}
+                        </div>
+
+                        <a href="/picture/{{ picture.id }}" class="instagram-card-comments-link">
+                            View all {{ picture.comments|length }} comments
+                        </a>
+
+                        <div class="instagram-card-time">
+                            {{ picture.created_at.strftime('%B %d, %Y') }}
+                        </div>
+                    </div>
+                </div>
             {% endfor %}
         </div>
     </div>
