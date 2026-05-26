@@ -50,7 +50,7 @@ async def index(request: Request,
         'stories': stories,
         'user_has_posted_bereal': user_has_posted_bereal
     }
-    return templates.TemplateResponse('home.html', context)
+    return templates.TemplateResponse(request, 'home.html', context)
 
 
 @router.get('/users')
@@ -67,7 +67,7 @@ async def users(request: Request,
         if user.admin:
             users_details = db.query(User).all()
             context = {'request': request, 'user': user, 'users_details': users_details}
-            return templates.TemplateResponse('users.html', context)
+            return templates.TemplateResponse(request, 'users.html', context)
 
     return RedirectResponse(url='/', status_code=status.HTTP_401_UNAUTHORIZED)
 
@@ -95,7 +95,7 @@ async def show_user(request: Request,
         "added_comments_count": added_comments_count
     }
 
-    return templates.TemplateResponse("user_details.html", context)
+    return templates.TemplateResponse(request, "user_details.html", context)
 
 
 @router.post("/users/toggle-ban/{user_id}", response_class=HTMLResponse)
@@ -172,12 +172,12 @@ async def picture_uploader(picture_url: str,
 
 @router.get("/picture/upload", response_class=HTMLResponse)
 async def authentication_page(request: Request):
-    return templates.TemplateResponse('picture_upload.html', {"request": request})
+    return templates.TemplateResponse(request, 'picture_upload.html', {})
 
 
 @router.get("/story/upload", response_class=HTMLResponse)
 async def story_upload_page(request: Request):
-    return templates.TemplateResponse('story_upload.html', {"request": request})
+    return templates.TemplateResponse(request, 'story_upload.html', {})
 
 
 @router.post("/picture/upload", response_class=HTMLResponse)
@@ -263,7 +263,7 @@ async def get_picture(request: Request,
                'username_uploader': username_uploader,
                "average_rating": average_rating,
                }
-    return templates.TemplateResponse('picture.html', context)
+    return templates.TemplateResponse(request, 'picture.html', context)
 
 
 @router.post("/picture/comments/add")
@@ -306,7 +306,7 @@ async def edit_comment_form(request: Request,
     if not comment or comment.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only edit your own comments.")
 
-    return templates.TemplateResponse("comment_edit.html", {"request": request, "comment": comment})
+    return templates.TemplateResponse(request, "comment_edit.html", {"comment": comment})
 
 
 @router.post("/comment/edit/{comment_id}")
@@ -390,7 +390,7 @@ async def edit_picture_form(request: Request,
     if not picture:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Picture not found or you don't have permission to edit it.")
 
-    return templates.TemplateResponse("picture_edit.html", {"request": request, "picture": picture, "user": current_user})
+    return templates.TemplateResponse(request, "picture_edit.html", {"picture": picture, "user": current_user})
 
 
 @router.post("/picture/edit/{picture_id}", response_class=HTMLResponse)
@@ -442,7 +442,7 @@ async def view_picture_ratings(request: Request,
                .filter(Rating.picture_id == picture_id)
                .all())
 
-    return templates.TemplateResponse("ratings.html", {"request": request, "ratings": ratings,
+    return templates.TemplateResponse(request, "ratings.html", {"ratings": ratings,
                                                        "picture_id": picture_id, "user": current_user})
 
 
@@ -471,7 +471,7 @@ async def delete_rating(rating_id: int,
 
 @router.get("/login", response_class=HTMLResponse)
 async def authentication_page(request: Request):
-    return templates.TemplateResponse('login.html', {"request": request})
+    return templates.TemplateResponse(request, 'login.html', {})
 
 
 @router.post("/login", response_class=HTMLResponse)
@@ -489,7 +489,7 @@ async def login_form(request: Request,
         if user.ban_status:
             msg = 'User is banned.'
             context = {'request': request, 'msg': msg}
-            return templates.TemplateResponse('login.html', context)
+            return templates.TemplateResponse(request, 'login.html', context)
 
         if auth_service.verify_password(password, user.password):
             data = {"sub": email}
@@ -498,14 +498,14 @@ async def login_form(request: Request,
             pictures = db.query(Picture).all()
 
             context = {'request': request, 'user': user, 'pictures': pictures}
-            response = templates.TemplateResponse('home.html', context)
+            response = templates.TemplateResponse(request, 'home.html', context)
             response.set_cookie(key='access_token', value=f'Bearer {jwt_token}', httponly=True)
             response.set_cookie(key="refresh_token", value=jwt_refresh_token, httponly=True)
             return response
 
     msg = 'Incorrect Username or Password'
     context = {'request': request, 'msg': msg}
-    return templates.TemplateResponse('login.html', context)
+    return templates.TemplateResponse(request, 'login.html', context)
 
 
 @router.get("/logout", response_class=HTMLResponse)
@@ -518,10 +518,16 @@ async def logout(request: Request,
     response.delete_cookie(key="refresh_token")
     return response
 
+@router.get("/set-language/{lang_code}")
+async def set_language(lang_code: str):
+    response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    response.set_cookie(key="lang", value=lang_code, httponly=True)
+    return response
+
 
 @router.get('/register', response_class=HTMLResponse)
 async def register(request: Request):\
-    return templates.TemplateResponse('register.html', {"request": request})
+    return templates.TemplateResponse(request, 'register.html', {})
 
 
 @router.post('/register', response_class=HTMLResponse)
@@ -541,7 +547,7 @@ async def register_user(request: Request,
         msg = 'Invalid registration request'
         context = {'request': request, 'msg': msg}
 
-        return templates.TemplateResponse('register.html', context)
+        return templates.TemplateResponse(request, 'register.html', context)
 
     user_model = User()
     user_model.username = username
@@ -555,4 +561,4 @@ async def register_user(request: Request,
 
     msg = 'User successfully created'
     context = {'request': request, 'msg': msg}
-    return templates.TemplateResponse('login.html', context)
+    return templates.TemplateResponse(request, 'login.html', context)

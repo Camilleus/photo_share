@@ -7,10 +7,10 @@
             <div class="stories-container mt-3">
                 <div class="story-item ml-3">
                     <div class="story-avatar-wrapper" onclick="window.location.href='/story/upload'">
-                        <img src="{{ user.avatar or 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }}" alt="Your Story" class="story-avatar" style="opacity: 0.6;">
-                        <div style="position: absolute; bottom: 20px; right: 10px; background: #0095f6; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; border: 2px solid white; font-size: 14px;">+</div>
+                        <img src="{{ user.avatar or 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }}" alt="{{ t(request, 'your_story') }}" class="story-avatar" style="opacity: 0.6;">
+                        <div style="position: absolute; bottom: 20px; right: 10px; background: #003399; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; border: 2px solid white; font-size: 14px;">+</div>
                     </div>
-                    <span class="story-username">Your Story</span>
+                    <span class="story-username">{{ t(request, 'your_story') }}</span>
                 </div>
 
                 {% for story in stories %}
@@ -34,8 +34,8 @@
                         {% if picture.is_bereal and not user_has_posted_bereal and picture.user_id != user.id %}
                             <div class="locked-overlay">
                                 <div>
-                                    <h3>⚠️ Post your daily BeReal to view this post</h3>
-                                    <a href="/picture/upload" class="btn btn-primary btn-sm mt-2">Post BeReal</a>
+                                    <h3>⚠️ {{ t(request, 'post_bereal_to_view') }}</h3>
+                                    <a href="/picture/upload" class="btn btn-primary btn-sm mt-2">{{ t(request, 'post_bereal') }}</a>
                                 </div>
                             </div>
                         {% endif %}
@@ -62,7 +62,7 @@
                         </div>
 
                         <div class="instagram-card-likes">
-                            {{ picture.ratings|length }} likes
+                            {{ picture.ratings|length }} {{ t(request, 'likes') }}
                         </div>
 
                         <div class="instagram-card-caption">
@@ -70,7 +70,7 @@
                         </div>
 
                         <a href="/picture/{{ picture.id }}" class="instagram-card-comments-link">
-                            View all {{ picture.comments|length }} comments
+                            {{ t(request, 'view_all_comments', count=picture.comments|length) }}
                         </a>
 
                         <div class="instagram-card-time">

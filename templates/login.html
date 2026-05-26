@@ -3,15 +3,27 @@
 <div class="container">
     <div class="card">
         <div class="card-header">
-            Login
+            {{ t(request, 'login') }}
         </div>
         <div class="card-body">
             <form method="POST" action="/login">
 
                 {% if msg %}
-                    {% if msg == 'Logout Successful' or msg == 'User successfully created' %}
+                    {% if msg == 'User successfully created' %}
                         <div class="alert alert-success" role="alert">
-                            {{ msg }}
+                            {{ t(request, 'user_created') }}
+                        </div>
+                    {% elif msg == 'Logout Successful' %}
+                         <div class="alert alert-success" role="alert">
+                            {{ t(request, "logout_successful") }}
+                        </div>
+                    {% elif msg == 'User is banned.' %}
+                         <div class="alert alert-danger" role="alert">
+                            {{ t(request, 'user_banned') }}
+                        </div>
+                    {% elif msg == 'Incorrect Username or Password' %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ t(request, 'incorrect_login') }}
                         </div>
                     {% else %}
                         <div class="alert alert-danger" role="alert">
@@ -21,20 +33,20 @@
                 {% endif %}
 
                 <div class="form-group">
-                    <label>Username</label>
+                    <label>{{ t(request, 'username') }}</label>
                     <input type="text" class="form-control" name="email" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Password</label>
+                    <label>{{ t(request, 'password') }}</label>
                     <input type="password" class="form-control" name="password" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Login</button>
+                <button type="submit" class="btn btn-primary">{{ t(request, 'login') }}</button>
             </form>
         </div>
 
         <div class="card-footer text-muted">
-            <a href="/register">Register?</a>
+            <a href="/register">{{ t(request, 'register_question') }}</a>
         </div>
     </div>
 </div>

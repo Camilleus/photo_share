@@ -6,7 +6,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Photo Share</title>
+    <title>PhotoShare EU</title>
 
 </head>
 <body>
@@ -16,6 +16,24 @@
 {% block content %}
 
 {% endblock %}
+
+<footer class="footer mt-auto py-3 bg-light border-top">
+    <div class="container text-center">
+        <span class="text-muted">{{ t(request, 'footer_text') }}</span>
+        <div class="mt-2">
+            <div class="dropdown d-inline-block">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="languageDropdown" data-toggle="dropdown" aria-has_popup="true" aria-expanded="false">
+                    {{ t(request, 'select_language') }}
+                </button>
+                <div class="dropdown-menu" aria-labelledby="languageDropdown" style="max-height: 300px; overflow-y: auto;">
+                    {% for code, name in LANGUAGES.items() %}
+                    <a class="dropdown-item" href="/set-language/{{ code }}">{{ name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
 
 <script src="{{ url_for('static', path='/photo/js/jquery-slim.js') }}"></script>
 <script src="{{ url_for('static', path='/photo/js/popper.js') }}"></script>
