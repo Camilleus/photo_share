@@ -1,0 +1,36 @@
+{% include 'layout.html' %}
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            Edit Story
+        </div>
+        <div class="card-body">
+
+            <form method="POST" action="/story/edit/{{ story.id }}">
+
+                <div class="form-group mb-3">
+                    <label>Media Type</label>
+                    <select class="form-control" name="media_type">
+                        <option value="image" {% if story.media_type == 'image' %}selected{% endif %}>Image</option>
+                        <option value="video" {% if story.media_type == 'video' %}selected{% endif %}>Video</option>
+                        <option value="gif" {% if story.media_type == 'gif' %}selected{% endif %}>GIF</option>
+                        <option value="reel" {% if story.media_type == 'reel' %}selected{% endif %}>Reel</option>
+                    </select>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Description</label>
+                    <textarea class="form-control" name="description" rows="3">{{ story.description or '' }}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Update Story</button>
+
+            </form>
+        </div>
+
+        <div class="card-footer text-muted">
+            <a href="/users/{{ user.id }}">Cancel and go back to profile</a>
+        </div>
+    </div>
+</div>

@@ -10,8 +10,18 @@
             <form method="POST" action="/picture/upload" enctype="multipart/form-data">
 
                 <div class="form-group">
-                    <label>Picture</label>
+                    <label>File (Image/Video/GIF)</label>
                     <input type="file" class="form-control-file" name="picture" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Media Type</label>
+                    <select class="form-control" name="media_type">
+                        <option value="image">Image</option>
+                        <option value="video">Video</option>
+                        <option value="gif">GIF</option>
+                        <option value="reel">Reel</option>
+                    </select>
                 </div>
 
                 <div class="form-group">

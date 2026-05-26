@@ -4,7 +4,15 @@ from src.database.models import Picture, User
 from fastapi import HTTPException
 
 
-async def upload_picture(picture_url: str, picture_json: dict, user: User, qr: str, db: Session) -> Picture:
+async def upload_picture(picture_url: str,
+                         picture_json: dict,
+                         user: User,
+                         qr: str,
+                         db: Session,
+                         description: str = None,
+                         media_type: str = 'image',
+                         picture_secondary_url: str = None,
+                         is_bereal: bool = False) -> Picture:
 
     """
     Asynchronously uploads a picture to the database.
@@ -21,12 +29,25 @@ async def upload_picture(picture_url: str, picture_json: dict, user: User, qr: s
     - user (User): The user object associated with the picture.
     - qr (str): The URL for the QR code of the original picture.
     - db (Session): The SQLAlchemy session used to interact with the database.
+    - description (str): The description of the picture.
+    - media_type (str): The media type of the picture (e.g., 'image', 'video', 'gif', 'reel').
+    - picture_secondary_url (str): The URL of the secondary picture for BeReal.
+    - is_bereal (bool): Flag indicating if the post is a BeReal post.
 
     Returns:
     - Picture: The newly uploaded Picture object.
     """
     
-    picture = Picture(picture_url=picture_url, picture_json=picture_json, user_id=user.id, qr_code_picture=qr)
+    picture = Picture(
+        picture_url=picture_url,
+        picture_json=picture_json,
+        user_id=user.id,
+        qr_code_picture=qr,
+        description=description,
+        media_type=media_type,
+        picture_secondary_url=picture_secondary_url,
+        is_bereal=is_bereal
+    )
     db.add(picture)
     db.commit()
     db.refresh(picture)
@@ -69,7 +90,7 @@ async def get_one_picture(picture_id: int, db: Session) -> Picture:
     return db.query(Picture).filter(Picture.id == picture_id).first()
 
 
-async def update_picture(picture_id: int, url: str, user: User, db: Session) -> Picture | None:
+async def update_picture(picture_id: int, url: str, user: User, db: Session, media_type: str = None) -> Picture | None:
     """
     Asynchronously updates a picture in the database.
 
@@ -90,6 +111,8 @@ async def update_picture(picture_id: int, url: str, user: User, db: Session) -> 
     if picture:
         picture.user_id = user.id
         picture.picture_url = url
+        if media_type:
+            picture.media_type = media_type
         db.commit()
         db.refresh(picture)
     return picture

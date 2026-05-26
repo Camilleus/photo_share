@@ -66,6 +66,7 @@ class Picture(Base):
     qr_code_picture_edited = Column(String(255), nullable=True)
     picture_secondary_url = Column(String(255), nullable=True)
     is_bereal = Column(Boolean, default=False)
+    media_type = Column(String(20), default='image')
     description = Column(String, nullable=True)
     created_at = Column('created_at', DateTime, default=func.now())
     user_id = Column('user_id', ForeignKey('user.id', ondelete='CASCADE'), default=None)
@@ -249,6 +250,8 @@ class Story(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     image_url = Column(String(255), nullable=False)
+    media_type = Column(String(20), default='image')
+    description = Column(String, nullable=True)
     created_at = Column(DateTime, default=func.now())
     user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'))
 
