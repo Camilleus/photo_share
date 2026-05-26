@@ -17,6 +17,83 @@
                 {% endif %}
             </div>
         </div>
+
+        <div class="mt-5">
+            <h3>Stories</h3>
+            <div class="row">
+                {% for story in user_stories %}
+                    <div class="col-md-3 mb-3">
+                        <div class="card">
+                            {% if story.media_type == 'image' %}
+                                <img src="{{ story.image_url }}" class="card-img-top" alt="Story">
+                            {% else %}
+                                <video src="{{ story.image_url }}" class="card-img-top" controls></video>
+                            {% endif %}
+                            <div class="card-body">
+                                <p class="card-text">{{ story.description or "" }}</p>
+                                {% if current_user.id == user.id or current_user.admin %}
+                                    <a href="/story/edit/{{ story.id }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <form action="/story/delete/{{ story.id }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-5">
+            <h3>Posts</h3>
+            <div class="row">
+                {% for item in user_pictures + user_videos + user_gifs %}
+                    <div class="col-4 mb-3">
+                        <div class="card h-100">
+                            {% if item.media_type == 'image' %}
+                                <a href="/picture/{{ item.id }}">
+                                    <img src="{{ item.picture_url }}" class="card-img-top" alt="Post" style="height: 250px; object-fit: cover;">
+                                </a>
+                            {% else %}
+                                <div class="position-relative" style="height: 250px; background: #000;">
+                                    <video src="{{ item.picture_url }}" class="w-100 h-100" style="object-fit: cover;"></video>
+                                    <div class="position-absolute" style="top: 10px; right: 10px; color: white; text-shadow: 0 0 5px rgba(0,0,0,0.5);">
+                                        <i class="fa-solid fa-video"></i>
+                                    </div>
+                                    <a href="/picture/{{ item.id }}" class="stretched-link"></a>
+                                </div>
+                            {% endif %}
+                            <div class="card-body p-2">
+                                <p class="card-text small text-truncate">{{ item.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-5">
+            <h3>Reels</h3>
+            <div class="row">
+                {% for item in user_reels %}
+                    <div class="col-4 mb-3">
+                        <div class="card h-100">
+                            <div class="position-relative" style="height: 400px; background: #000;">
+                                <video src="{{ item.picture_url }}" class="w-100 h-100" style="object-fit: cover;"></video>
+                                <div class="position-absolute" style="top: 10px; right: 10px; color: white; text-shadow: 0 0 5px rgba(0,0,0,0.5);">
+                                    <i class="fa-solid fa-film"></i>
+                                </div>
+                                <a href="/picture/{{ item.id }}" class="stretched-link"></a>
+                            </div>
+                            <div class="card-body p-2">
+                                <p class="card-text small text-truncate">{{ item.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
         <a href="/" class="btn btn-primary mt-3">Back</a>
 
         {% if current_user.id == user.id or current_user.admin %}

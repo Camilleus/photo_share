@@ -40,7 +40,11 @@
                             </div>
                         {% endif %}
 
-                        <img src="{{ picture.picture_url }}" alt="Image">
+                        {% if picture.media_type == 'image' %}
+                            <img src="{{ picture.picture_url }}" alt="Image">
+                        {% else %}
+                            <video src="{{ picture.picture_url }}" controls style="width: 100%; max-height: 500px;"></video>
+                        {% endif %}
 
                         {% if picture.picture_secondary_url %}
                             <div class="bereal-secondary">

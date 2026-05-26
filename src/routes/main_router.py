@@ -84,15 +84,26 @@ async def show_user(request: Request,
         raise HTTPException(status_code=404, detail="User not found")
 
     uploaded_images_count = db.query(Picture).filter(Picture.user_id == user_id).count()
-
     added_comments_count = db.query(Comment).filter(Comment.user_id == user_id).count()
+
+    # Fetch user's content
+    user_pictures = db.query(Picture).filter(Picture.user_id == user_id, Picture.media_type == 'image').all()
+    user_videos = db.query(Picture).filter(Picture.user_id == user_id, Picture.media_type == 'video').all()
+    user_reels = db.query(Picture).filter(Picture.user_id == user_id, Picture.media_type == 'reel').all()
+    user_gifs = db.query(Picture).filter(Picture.user_id == user_id, Picture.media_type == 'gif').all()
+    user_stories = db.query(Story).filter(Story.user_id == user_id).all()
 
     context = {
         "request": request,
         "user": user,
         'current_user': current_user,
         "uploaded_images_count": uploaded_images_count,
-        "added_comments_count": added_comments_count
+        "added_comments_count": added_comments_count,
+        "user_pictures": user_pictures,
+        "user_videos": user_videos,
+        "user_reels": user_reels,
+        "user_gifs": user_gifs,
+        "user_stories": user_stories
     }
 
     return templates.TemplateResponse("user_details.html", context)
@@ -145,29 +156,6 @@ async def delete_user(user_id: int,
     return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
 
 
-async def picture_uploader(picture_url: str,
-                           picture_json: dict,
-                           user: User, qr: str,
-                           description: str,
-                           db: Session,
-                           picture_secondary_url: str = None,
-                           is_bereal: bool = False
-                           ) -> Picture:
-
-    picture = Picture(
-        picture_url=picture_url,
-        picture_json=picture_json,
-        user_id=user.id,
-        qr_code_picture=qr,
-        description=description,
-        created_at=datetime.now(),
-        picture_secondary_url=picture_secondary_url,
-        is_bereal=is_bereal
-    )
-    db.add(picture)
-    db.commit()
-    db.refresh(picture)
-    return picture
 
 
 @router.get("/picture/upload", response_class=HTMLResponse)
@@ -186,6 +174,7 @@ async def upload_picture(request: Request,
                          picture_secondary: UploadFile = File(None),
                          is_bereal: bool = Form(False),
                          description: str = Form(...),
+                         media_type: str = Form('image'),
                          metadata: str = Form("{}"),
                          qr_code: UploadFile = File(None),
                          current_user: User = Depends(auth_service.get_current_user_optional),
@@ -199,9 +188,10 @@ async def upload_picture(request: Request,
 
     # Upload main picture
     picture_name = generate_random_string()
-    picture_uploaded = cloudinary.uploader.upload(picture.file, public_id=picture_name, folder='picture', overwrite=True)
+    resource_type = 'video' if media_type in ['video', 'gif', 'reel'] else 'image'
+    picture_uploaded = cloudinary.uploader.upload(picture.file, public_id=picture_name, folder='picture', overwrite=True, resource_type=resource_type)
     version = picture_uploaded.get('version')
-    picture_url = cloudinary.CloudinaryImage(picture_uploaded['public_id']).build_url(version=version)
+    picture_url = cloudinary.CloudinaryImage(picture_uploaded['public_id'], resource_type=resource_type).build_url(version=version)
 
     # Upload secondary picture if provided
     picture_secondary_url = None
@@ -212,14 +202,17 @@ async def upload_picture(request: Request,
 
     qr = await generate_qr_and_upload_to_cloudinary(picture_url, picture_uploaded)
 
-    uploaded_picture = await picture_uploader(picture_url=picture_url,
-                                              picture_json=picture_uploaded,
-                                              user=current_user,
-                                              description=description,
-                                              qr=qr,
-                                              db=db,
-                                              picture_secondary_url=picture_secondary_url,
-                                              is_bereal=is_bereal)
+    uploaded_picture = await picture_repository.upload_picture(
+        picture_url=picture_url,
+        picture_json=picture_uploaded,
+        user=current_user,
+        description=description,
+        qr=qr,
+        db=db,
+        picture_secondary_url=picture_secondary_url,
+        is_bereal=is_bereal,
+        media_type=media_type
+    )
 
     if is_bereal:
         current_user.last_bereal_post_at = datetime.now()
@@ -396,6 +389,7 @@ async def edit_picture_form(request: Request,
 @router.post("/picture/edit/{picture_id}", response_class=HTMLResponse)
 async def submit_edit_picture(picture_id: int,
                               description: str = Form(...),
+                              media_type: str = Form(None),
                               db: Session = Depends(get_db),
                               current_user: User = Depends(auth_service.get_current_user_optional)):
 
@@ -408,9 +402,97 @@ async def submit_edit_picture(picture_id: int,
         raise HTTPException(status_code=404, detail="Picture not found or you don't have permission to edit it.")
 
     picture.description = description
+    if media_type:
+        picture.media_type = media_type
     db.commit()
 
     return RedirectResponse(url=f"/picture/{picture_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/story/upload", response_class=HTMLResponse)
+async def upload_story(request: Request,
+                       story_image: UploadFile = File(...),
+                       media_type: str = Form('image'),
+                       description: str = Form(None),
+                       current_user: User = Depends(auth_service.get_current_user_optional),
+                       db: Session = Depends(get_db)
+                       ):
+
+    if not current_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required.")
+
+    configure_cloudinary()
+    public_id = generate_random_string()
+    resource_type = 'video' if media_type in ['video', 'gif', 'reel'] else 'image'
+
+    uploaded = cloudinary.uploader.upload(
+        story_image.file,
+        public_id=public_id,
+        folder='stories',
+        overwrite=True,
+        resource_type=resource_type
+    )
+
+    image_url = cloudinary.CloudinaryImage(
+        uploaded['public_id'],
+        resource_type=resource_type
+    ).build_url(version=uploaded.get('version'))
+
+    await story_repository.create_story(
+        image_url=image_url,
+        user=current_user,
+        db=db,
+        media_type=media_type,
+        description=description
+    )
+
+    return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.get("/story/edit/{story_id}", response_class=HTMLResponse)
+async def edit_story_form(request: Request,
+                          story_id: int,
+                          db: Session = Depends(get_db),
+                          current_user: User = Depends(auth_service.get_current_user_optional)):
+
+    if not current_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required.")
+
+    story = await story_repository.get_one_story(story_id, db)
+    if not story or (story.user_id != current_user.id and not current_user.admin):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Story not found or unauthorized")
+
+    return templates.TemplateResponse("story_edit.html", {"request": request, "story": story, "user": current_user})
+
+
+@router.post("/story/edit/{story_id}", response_class=HTMLResponse)
+async def submit_edit_story(story_id: int,
+                            description: str = Form(None),
+                            media_type: str = Form('image'),
+                            db: Session = Depends(get_db),
+                            current_user: User = Depends(auth_service.get_current_user_optional)):
+
+    story = await story_repository.get_one_story(story_id, db)
+    if not story or (story.user_id != current_user.id and not current_user.admin):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Story not found or unauthorized")
+
+    await story_repository.update_story(story_id, media_type, description, db)
+
+    return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/story/delete/{story_id}")
+async def delete_story(story_id: int,
+                       db: Session = Depends(get_db),
+                       current_user: User = Depends(auth_service.get_current_user_optional)):
+
+    story = await story_repository.get_one_story(story_id, db)
+    if not story or (story.user_id != current_user.id and not current_user.admin):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Story not found or unauthorized")
+
+    await story_repository.delete_story(story_id, db)
+
+    return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.post("/picture/rate/{picture_id}")

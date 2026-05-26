@@ -122,6 +122,7 @@ class TagsResponseModel(BaseModel):
 class PictureResponse(PictureBase):
     id: int
     picture_url: str | None
+    media_type: str = 'image'
     average_rating: Optional[float] | None
     created_at: datetime
     tags: Optional[List[TagModel]]
@@ -269,6 +270,8 @@ class ReactionName(str, Enum):
 class StoryResponse(BaseModel):
     id: int
     image_url: str
+    media_type: str = 'image'
+    description: Optional[str] = None
     created_at: datetime
     user_id: int
 

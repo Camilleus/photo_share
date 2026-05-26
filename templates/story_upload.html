@@ -7,11 +7,26 @@
         </div>
         <div class="card-body">
 
-            <form method="POST" action="/api/stories/upload" enctype="multipart/form-data">
+            <form method="POST" action="/story/upload" enctype="multipart/form-data">
 
                 <div class="form-group mb-3">
-                    <label>Story Image</label>
+                    <label>File (Image/Video/GIF)</label>
                     <input type="file" class="form-control" name="story_image" required>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Media Type</label>
+                    <select class="form-control" name="media_type">
+                        <option value="image">Image</option>
+                        <option value="video">Video</option>
+                        <option value="gif">GIF</option>
+                        <option value="reel">Reel</option>
+                    </select>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Description</label>
+                    <textarea class="form-control" name="description" rows="2"></textarea>
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100">Post Story</button>

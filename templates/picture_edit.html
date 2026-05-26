@@ -8,15 +8,29 @@
         <div class="card-body">
             <form method="POST" action="/picture/edit/{{ picture.id }}">
                 <div class="form-group">
-                    <img src="{{ picture.picture_url }}" alt="Picture" class="img-fluid">
+                    {% if picture.media_type == 'image' %}
+                        <img src="{{ picture.picture_url }}" alt="Picture" class="img-fluid">
+                    {% else %}
+                        <video src="{{ picture.picture_url }}" controls style="max-width: 100%;"></video>
+                    {% endif %}
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-3">
+                    <label>Media Type</label>
+                    <select class="form-control" name="media_type">
+                        <option value="image" {% if picture.media_type == 'image' %}selected{% endif %}>Image</option>
+                        <option value="video" {% if picture.media_type == 'video' %}selected{% endif %}>Video</option>
+                        <option value="gif" {% if picture.media_type == 'gif' %}selected{% endif %}>GIF</option>
+                        <option value="reel" {% if picture.media_type == 'reel' %}selected{% endif %}>Reel</option>
+                    </select>
+                </div>
+
+                <div class="form-group mt-3">
                     <label>Description</label>
                     <textarea class="form-control" name="description" rows="3" required>{{ picture.description }}</textarea>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Update Description</button>
+                <button type="submit" class="btn btn-primary mt-3">Update Post</button>
             </form>
         </div>
 

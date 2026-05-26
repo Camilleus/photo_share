@@ -19,6 +19,8 @@ router = APIRouter(prefix='/pictures', tags=["pictures"])
 @router.post("/upload", status_code=status.HTTP_201_CREATED, response_model=PictureResponse)
 async def upload_picture(
         picture: UploadFile = File(),
+        description: str = None,
+        media_type: str = 'image',
         current_user: User = Depends(auth_service.get_current_user),
         db: Session = Depends(get_db)
 ) -> PictureDB:
@@ -42,13 +44,22 @@ async def upload_picture(
 
     configure_cloudinary()
     picture_name = generate_random_string()
-    picture = cloudinary.uploader.upload(picture.file, public_id=picture_name, folder='picture', overwrite=True)
+    resource_type = 'video' if media_type in ['video', 'gif', 'reel'] else 'image'
+    picture = cloudinary.uploader.upload(picture.file, public_id=picture_name, folder='picture', overwrite=True, resource_type=resource_type)
     version = picture.get('version')
 
-    picture_url = cloudinary.CloudinaryImage(picture['public_id']).build_url(version=version)
+    picture_url = cloudinary.CloudinaryImage(picture['public_id'], resource_type=resource_type).build_url(version=version)
     qr = await generate_qr_and_upload_to_cloudinary(picture_url, picture)
 
-    picture_in_db = await repository_pictures.upload_picture(picture_url=picture_url, picture_json=picture, user=current_user, qr=qr, db=db)
+    picture_in_db = await repository_pictures.upload_picture(
+        picture_url=picture_url,
+        picture_json=picture,
+        user=current_user,
+        qr=qr,
+        db=db,
+        description=description,
+        media_type=media_type
+    )
 
     return picture_in_db
 
@@ -114,6 +125,7 @@ async def get_one_picture(
 async def update_picture(
         picture_id: int,
         picture: UploadFile = File(),
+        media_type: str = 'image',
         current_user: User = Depends(auth_service.get_current_user),
         db: Session = Depends(get_db)
 ) -> PictureDB:
@@ -145,10 +157,11 @@ async def update_picture(
     if not current_user.id == picture_data.user_id and not current_user.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update this picture")
 
-    picture_uploaded = cloudinary.uploader.upload(picture.file, public_id=f'picture/{current_user.email}', overwrite=True)
-    url = cloudinary.CloudinaryImage(f'picture/{random_string}').build_url(version=picture_uploaded.get('version'))
+    resource_type = 'video' if media_type in ['video', 'gif', 'reel'] else 'image'
+    picture_uploaded = cloudinary.uploader.upload(picture.file, public_id=f'picture/{current_user.email}', overwrite=True, resource_type=resource_type)
+    url = cloudinary.CloudinaryImage(f'picture/{random_string}', resource_type=resource_type).build_url(version=picture_uploaded.get('version'))
 
-    picture_url = await repository_pictures.update_picture(picture_id=picture_id, url=url, user=current_user, db=db)
+    picture_url = await repository_pictures.update_picture(picture_id=picture_id, url=url, user=current_user, db=db, media_type=media_type)
 
     return picture_url
 
