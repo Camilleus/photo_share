@@ -1,0 +1,26 @@
+{% include 'layout.html' %}
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            Share a Story
+        </div>
+        <div class="card-body">
+
+            <form method="POST" action="/api/stories/upload" enctype="multipart/form-data">
+
+                <div class="form-group mb-3">
+                    <label>Story Image</label>
+                    <input type="file" class="form-control" name="story_image" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Post Story</button>
+
+            </form>
+        </div>
+
+        <div class="card-footer text-muted small">
+            Stories disappear after 24 hours.
+        </div>
+    </div>
+</div>

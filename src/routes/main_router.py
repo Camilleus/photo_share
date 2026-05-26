@@ -12,6 +12,7 @@ from src.database.models import User, Picture, Comment, Rating
 from src.services.auth import auth_service
 import src.repository.pictures as picture_repository
 import src.repository.rating as rating_repository
+import src.repository.stories as story_repository
 from src.conf.cloudinary import configure_cloudinary, generate_random_string
 from src.services.qr import generate_qr_and_upload_to_cloudinary
 import cloudinary
@@ -32,9 +33,23 @@ async def index(request: Request,
         return RedirectResponse(url='/login', status_code=status.HTTP_302_FOUND)
 
     user = db.query(User).filter(User.id == current_user.id).first()
-    pictures = db.query(Picture).all()
+    pictures = db.query(Picture).order_by(Picture.created_at.desc()).all()
+    stories = await story_repository.get_active_stories(db)
 
-    context = {'request': request, 'user': user, 'pictures': pictures}
+    # Check if user has posted a BeReal in the last 24 hours
+    user_has_posted_bereal = False
+    if user.last_bereal_post_at:
+        time_diff = datetime.now() - user.last_bereal_post_at
+        if time_diff.total_seconds() < 24 * 3600:
+            user_has_posted_bereal = True
+
+    context = {
+        'request': request,
+        'user': user,
+        'pictures': pictures,
+        'stories': stories,
+        'user_has_posted_bereal': user_has_posted_bereal
+    }
     return templates.TemplateResponse('home.html', context)
 
 
@@ -134,7 +149,9 @@ async def picture_uploader(picture_url: str,
                            picture_json: dict,
                            user: User, qr: str,
                            description: str,
-                           db: Session
+                           db: Session,
+                           picture_secondary_url: str = None,
+                           is_bereal: bool = False
                            ) -> Picture:
 
     picture = Picture(
@@ -143,7 +160,9 @@ async def picture_uploader(picture_url: str,
         user_id=user.id,
         qr_code_picture=qr,
         description=description,
-        created_at=datetime.now()
+        created_at=datetime.now(),
+        picture_secondary_url=picture_secondary_url,
+        is_bereal=is_bereal
     )
     db.add(picture)
     db.commit()
@@ -156,9 +175,16 @@ async def authentication_page(request: Request):
     return templates.TemplateResponse('picture_upload.html', {"request": request})
 
 
+@router.get("/story/upload", response_class=HTMLResponse)
+async def story_upload_page(request: Request):
+    return templates.TemplateResponse('story_upload.html', {"request": request})
+
+
 @router.post("/picture/upload", response_class=HTMLResponse)
 async def upload_picture(request: Request,
                          picture: UploadFile = File(...),
+                         picture_secondary: UploadFile = File(None),
+                         is_bereal: bool = Form(False),
                          description: str = Form(...),
                          metadata: str = Form("{}"),
                          qr_code: UploadFile = File(None),
@@ -170,19 +196,34 @@ async def upload_picture(request: Request,
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required.")
 
     configure_cloudinary()
-    picture_name = generate_random_string()
-    picture = cloudinary.uploader.upload(picture.file, public_id=picture_name, folder='picture', overwrite=True)
-    version = picture.get('version')
 
-    picture_url = cloudinary.CloudinaryImage(picture['public_id']).build_url(version=version)
-    qr = await generate_qr_and_upload_to_cloudinary(picture_url, picture)
+    # Upload main picture
+    picture_name = generate_random_string()
+    picture_uploaded = cloudinary.uploader.upload(picture.file, public_id=picture_name, folder='picture', overwrite=True)
+    version = picture_uploaded.get('version')
+    picture_url = cloudinary.CloudinaryImage(picture_uploaded['public_id']).build_url(version=version)
+
+    # Upload secondary picture if provided
+    picture_secondary_url = None
+    if picture_secondary and picture_secondary.filename:
+        sec_picture_name = generate_random_string()
+        sec_uploaded = cloudinary.uploader.upload(picture_secondary.file, public_id=sec_picture_name, folder='picture', overwrite=True)
+        picture_secondary_url = cloudinary.CloudinaryImage(sec_uploaded['public_id']).build_url(version=sec_uploaded.get('version'))
+
+    qr = await generate_qr_and_upload_to_cloudinary(picture_url, picture_uploaded)
 
     uploaded_picture = await picture_uploader(picture_url=picture_url,
-                                              picture_json=picture,
+                                              picture_json=picture_uploaded,
                                               user=current_user,
                                               description=description,
                                               qr=qr,
-                                              db=db)
+                                              db=db,
+                                              picture_secondary_url=picture_secondary_url,
+                                              is_bereal=is_bereal)
+
+    if is_bereal:
+        current_user.last_bereal_post_at = datetime.now()
+        db.commit()
 
     return RedirectResponse(url=f"/picture/{uploaded_picture.id}", status_code=status.HTTP_303_SEE_OTHER)
 

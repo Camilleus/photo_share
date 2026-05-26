@@ -1,10 +1,13 @@
+from datetime import datetime
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
 from typing import List, Optional
 
 from src.database.db import get_db
-from src.schemas import PictureResponse, Picturesearch
+from src.schemas import PictureResponse, PictureSearch, UserSearch, UserResponse
 from src.repository import search as repository_search
+from src.services.auth import auth_service
+from src.database.models import User
 
 
 router = APIRouter(prefix="/search",tags=["search"])
@@ -86,7 +89,7 @@ def search_users(search_params: UserSearch, db: Session = Depends(get_db)) -> Li
 router.get("/users", response_model=List[UserResponse])(search_users)
 
 
-def search_users_by_picture(user_id: Optional[int] = None, picture_id: Optional[int] = None, rating: Optional[int] = None, added_after: Optional[datetime] = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> List[UserResponse]:
+def search_users_by_picture(user_id: Optional[int] = None, picture_id: Optional[int] = None, rating: Optional[int] = None, added_after: Optional[datetime] = None, db: Session = Depends(get_db), current_user: User = Depends(auth_service.get_current_user)) -> List[UserResponse]:
     """
     A function that searches for users by picture, with optional parameters for user ID, picture ID, rating, and added date. It requires a database session and the current user as dependencies. Returns a list of UserResponse objects.
     """
